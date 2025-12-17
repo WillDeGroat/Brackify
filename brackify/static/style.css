@@ -47,6 +47,9 @@ main {
   max-width: 1200px;
   margin: 0 auto;
   padding: 8px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .controls {
@@ -135,28 +138,30 @@ button[type='submit']:active {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 18px;
-  margin-bottom: 20px;
+  padding: 14px 16px;
+  margin-bottom: 0;
   box-shadow: var(--shadow);
+  max-width: 360px;
+  margin-left: auto;
 }
 
 .share-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .share-actions {
   display: flex;
   gap: 8px;
-  flex: 1;
-  min-width: 240px;
+  flex: 0 1 260px;
 }
 
 .share-actions input {
   flex: 1;
+  min-width: 0;
 }
 
 .share-actions button {
@@ -179,20 +184,20 @@ button[type='submit']:active {
 
 .bracket {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(200px, 1fr);
-  gap: 14px;
-  margin-top: 12px;
-  overflow-x: auto;
-  padding-bottom: 12px;
+  grid-template-columns: repeat(var(--round-count, 1), minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 6px;
+  overflow: visible;
+  width: 100%;
+  justify-items: stretch;
 }
 
 .round {
-  min-width: 200px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   align-self: stretch;
+  position: relative;
 }
 
 .round.final {
@@ -319,6 +324,21 @@ footer {
 @media (max-width: 720px) {
   .inline {
     flex-direction: column;
+  }
+
+  .share {
+    margin: 0;
+    max-width: unset;
+  }
+
+  .share-top {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .share-actions {
+    width: 100%;
+    flex: 1 1 auto;
   }
 
   .round {
