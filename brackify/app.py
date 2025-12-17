@@ -1,4 +1,5 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
+
 from datetime import datetime, timedelta, timezone
 import secrets
 from flask import Flask, jsonify, render_template, request, url_for
@@ -16,7 +17,7 @@ def create_app() -> Flask:
     def now() -> datetime:
         return datetime.now(timezone.utc)
 
-    def parse_timestamp(value: Any) -> datetime | None:
+    def parse_timestamp(value: Any) -> Optional[datetime]:
         if not value:
             return None
 

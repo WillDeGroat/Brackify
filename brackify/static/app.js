@@ -166,13 +166,15 @@ function handlePick(roundIndex, matchIndex, slotIndex) {
     return;
   }
 
-  if (!opponent) {
-    setStatus('Two songs are required for this matchup.');
-    return;
-  }
-
   const nextRoundIndex = roundIndex + 1;
   if (!bracketState[nextRoundIndex]) {
+    if (finalWinnerId && trackKey(choice) === finalWinnerId) {
+      finalWinnerId = null;
+      setStatus('');
+      renderBracket();
+      return;
+    }
+
     finalWinnerId = trackKey(choice);
     setStatus(`${choice.song_name} wins the bracket!`);
     renderBracket();
@@ -182,6 +184,21 @@ function handlePick(roundIndex, matchIndex, slotIndex) {
 
   const targetMatch = Math.floor(matchIndex / 2);
   const targetSlot = matchIndex % 2;
+  const existing = bracketState[nextRoundIndex][targetMatch][targetSlot];
+
+  if (existing && trackKey(existing) === trackKey(choice)) {
+    bracketState[nextRoundIndex][targetMatch][targetSlot] = null;
+    clearDownstream(nextRoundIndex, targetMatch);
+    finalWinnerId = null;
+    setStatus('');
+    renderBracket();
+    return;
+  }
+
+  if (!opponent) {
+    setStatus('Two songs are required for this matchup.');
+    return;
+  }
 
   bracketState[nextRoundIndex][targetMatch][targetSlot] = choice;
   clearDownstream(nextRoundIndex, targetMatch);
