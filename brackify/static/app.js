@@ -1,13 +1,36 @@
 const form = document.getElementById('playlist-form');
 const bracketEl = document.getElementById('bracket');
 const statusEl = document.getElementById('status');
+const shareInput = document.getElementById('share-url');
+const copyButton = document.getElementById('copy-share');
+const bracketId = document.body?.dataset?.bracketId;
 
 let bracketState = [];
 let finalWinnerId = null;
+let previewAudio = null;
+let previewTimeout = null;
 
-form.addEventListener('submit', async (event) => {
+if (form) {
+  form.addEventListener('submit', handleFormSubmit);
+}
+
+if (copyButton && shareInput) {
+  copyButton.addEventListener('click', handleCopyLink);
+}
+
+if (bracketId) {
+  hydrateBracket(bracketId);
+}
+
+function setStatus(message) {
+  if (statusEl) {
+    statusEl.textContent = message;
+  }
+}
+
+async function handleFormSubmit(event) {
   event.preventDefault();
-  statusEl.textContent = 'Building bracket...';
+  setStatus('Building bracket...');
 
   const payload = {
     playlist: form.playlist.value.trim(),
@@ -28,20 +51,66 @@ form.addEventListener('submit', async (event) => {
       throw new Error(data.error || 'Failed to build bracket');
     }
 
-    const seeds = data.seeds || [];
-    initializeBracket(seeds);
+    if (data.share_url) {
+      setStatus('Bracket ready! Opening your bracket...');
+      window.location.href = data.share_url;
+      return;
+    }
 
-    const missing = seeds.filter((s) => !s).length;
+    setStatus('Bracket ready!');
+  } catch (error) {
+    setStatus(error.message);
+  }
+}
+
+async function hydrateBracket(id) {
+  setStatus('Loading bracket...');
+
+  try {
+    const res = await fetch(`/api/bracket/${encodeURIComponent(id)}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Could not load bracket');
+    }
+
+    updateShareLink(data.share_url);
+    initializeBracket(data.seeds || []);
+
+    const missing = (data.seeds || []).filter((s) => !s).length;
     if (missing > 0) {
-      statusEl.textContent = `Only ${data.total_tracks} tracks available. ${missing} slot(s) left empty.`;
+      setStatus(`Only ${data.total_tracks} tracks available. ${missing} slot(s) left empty.`);
     } else {
-      statusEl.textContent = 'Bracket ready. Click a song to advance it forward.';
+      setStatus('Bracket ready. Click a song to advance it forward.');
     }
   } catch (error) {
-    statusEl.textContent = error.message;
-    bracketEl.innerHTML = '';
+    setStatus(error.message);
+    if (bracketEl) {
+      bracketEl.innerHTML = '';
+    }
   }
-});
+}
+
+function updateShareLink(url) {
+  if (shareInput && url) {
+    shareInput.value = url;
+  }
+}
+
+function handleCopyLink() {
+  if (!shareInput) return;
+
+  navigator.clipboard.writeText(shareInput.value)
+    .then(() => {
+      copyButton.textContent = 'Copied!';
+      setTimeout(() => {
+        copyButton.textContent = 'Copy link';
+      }, 1600);
+    })
+    .catch(() => {
+      copyButton.textContent = 'Unable to copy';
+    });
+}
 
 function trackKey(track) {
   return track.track_id || `${track.song_name}-${track.album_name}-${track.artists}`;
@@ -98,15 +167,16 @@ function handlePick(roundIndex, matchIndex, slotIndex) {
   }
 
   if (!opponent) {
-    statusEl.textContent = 'Two songs are required for this matchup.';
+    setStatus('Two songs are required for this matchup.');
     return;
   }
 
   const nextRoundIndex = roundIndex + 1;
   if (!bracketState[nextRoundIndex]) {
     finalWinnerId = trackKey(choice);
-    statusEl.textContent = `${choice.song_name} wins the bracket!`;
+    setStatus(`${choice.song_name} wins the bracket!`);
     renderBracket();
+    launchConfetti();
     return;
   }
 
@@ -116,22 +186,55 @@ function handlePick(roundIndex, matchIndex, slotIndex) {
   bracketState[nextRoundIndex][targetMatch][targetSlot] = choice;
   clearDownstream(nextRoundIndex, targetMatch);
 
-  statusEl.textContent = '';
+  setStatus('');
   renderBracket();
 }
 
 function renderBracket() {
-  bracketEl.innerHTML = '';
+  if (!bracketEl) return;
+
+  const totalRounds = bracketState.length;
+  if (totalRounds === 0) {
+    bracketEl.innerHTML = '';
+    return;
+  }
+
+  const leftColumns = [];
+  const rightColumns = [];
+  let finalColumn = null;
 
   bracketState.forEach((round, roundIndex) => {
+    const label = roundLabel(roundIndex);
+    if (roundIndex === totalRounds - 1) {
+      finalColumn = {
+        roundIndex,
+        label,
+        matches: round.map((match, idx) => ({match, matchIndex: idx})),
+        final: true,
+      };
+      return;
+    }
+
+    const midpoint = round.length / 2;
+    const leftMatches = round.slice(0, midpoint).map((match, idx) => ({match, matchIndex: idx}));
+    const rightMatches = round.slice(midpoint).map((match, idx) => ({match, matchIndex: idx + midpoint}));
+
+    leftColumns.push({roundIndex, label, matches: leftMatches});
+    rightColumns.unshift({roundIndex, label, matches: rightMatches});
+  });
+
+  const columns = [...leftColumns, finalColumn, ...rightColumns].filter(Boolean);
+  bracketEl.innerHTML = '';
+
+  columns.forEach((column) => {
     const roundEl = document.createElement('div');
-    roundEl.className = 'round';
+    roundEl.className = `round${column.final ? ' final' : ''}`;
 
-    const label = document.createElement('h3');
-    label.textContent = roundLabel(roundIndex);
-    roundEl.appendChild(label);
+    const labelEl = document.createElement('h3');
+    labelEl.textContent = column.final ? 'Final' : column.label;
+    roundEl.appendChild(labelEl);
 
-    round.forEach((match, matchIndex) => {
+    column.matches.forEach(({match, matchIndex}) => {
       const matchEl = document.createElement('div');
       matchEl.className = 'match';
 
@@ -145,7 +248,7 @@ function renderBracket() {
         }
 
         if (slot) {
-          slotEl.appendChild(renderCover(slot.image_url));
+          slotEl.appendChild(renderCover(slot));
 
           const meta = document.createElement('div');
           const title = document.createElement('p');
@@ -182,13 +285,51 @@ function renderBracket() {
   });
 }
 
-function renderCover(url) {
+function renderCover(track) {
   const img = document.createElement('img');
   img.className = 'cover';
-  const fallback = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><rect width="80" height="80" rx="12" fill="%2310181f"/><text x="40" y="46" text-anchor="middle" font-size="26" fill="%239da7b1" font-family="Helvetica, Arial, sans-serif">♪</text></svg>';
-  img.src = url || fallback;
-  img.alt = url ? 'Album cover' : 'Empty slot';
+  const fallback = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><rect width="80" height="80" rx="12" fill="%23f2f2f2"/><text x="40" y="46" text-anchor="middle" font-size="26" fill="%23888888" font-family="Helvetica, Arial, sans-serif">♪</text></svg>';
+
+  if (track && track.image_url) {
+    img.src = track.image_url;
+  } else {
+    img.src = fallback;
+  }
+
+  img.alt = track ? `${track.song_name} cover art` : 'Empty slot';
+
+  if (track && track.preview_url) {
+    img.classList.add('cover-preview');
+    img.title = 'Play 15 second preview';
+    img.addEventListener('click', (event) => {
+      event.stopPropagation();
+      playPreview(track.preview_url);
+    });
+  }
+
   return img;
+}
+
+function playPreview(url) {
+  if (!url) return;
+
+  if (previewAudio) {
+    previewAudio.pause();
+    previewAudio = null;
+  }
+
+  if (previewTimeout) {
+    clearTimeout(previewTimeout);
+    previewTimeout = null;
+  }
+
+  previewAudio = new Audio(url);
+  previewAudio.volume = 0.9;
+  previewAudio.play().catch(() => {});
+
+  previewTimeout = setTimeout(() => {
+    previewAudio?.pause();
+  }, 15000);
 }
 
 function isSelected(roundIndex, matchIndex, slotIndex, track) {
@@ -212,4 +353,42 @@ function roundLabel(roundIndex) {
   const startSize = bracketState[0].length * 2;
   const currentSize = startSize / (2 ** roundIndex);
   return `Round of ${currentSize}`;
+}
+
+function launchConfetti() {
+  const colors = ['#000000', '#444444', '#ffffff'];
+  const duration = 1600;
+  const end = Date.now() + duration;
+
+  const frame = () => {
+    if (Date.now() > end) return;
+    createPiece();
+    requestAnimationFrame(frame);
+  };
+
+  requestAnimationFrame(frame);
+
+  function createPiece() {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const size = 8 + Math.random() * 6;
+    piece.style.width = `${size}px`;
+    piece.style.height = `${size * 1.2}px`;
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    document.body.appendChild(piece);
+
+    const translateY = 500 + Math.random() * 500;
+    const rotate = -300 + Math.random() * 600;
+
+    piece.animate([
+      {transform: 'translateY(0) rotate(0deg)', opacity: 1},
+      {transform: `translateY(${translateY}px) rotate(${rotate}deg)`, opacity: 0.9},
+    ], {
+      duration: 800 + Math.random() * 400,
+      easing: 'ease-out',
+    });
+
+    setTimeout(() => piece.remove(), 1400);
+  }
 }
