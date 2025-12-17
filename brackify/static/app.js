@@ -244,8 +244,11 @@ function renderBracket() {
   bracketEl.innerHTML = '';
 
   columns.forEach((column) => {
+    const {roundIndex} = column;
+
     const roundEl = document.createElement('div');
     roundEl.className = `round${column.final ? ' final' : ''}`;
+    roundEl.dataset.roundIndex = roundIndex;
 
     const labelEl = document.createElement('h3');
     labelEl.textContent = column.final ? 'Final' : column.label;
@@ -300,6 +303,8 @@ function renderBracket() {
 
     bracketEl.appendChild(roundEl);
   });
+
+  applyBracketLayout(columns.length);
 }
 
 function renderCover(track) {
@@ -408,4 +413,33 @@ function launchConfetti() {
 
     setTimeout(() => piece.remove(), 1400);
   }
+}
+
+function applyBracketLayout(roundCount) {
+  if (!bracketEl) return;
+
+  bracketEl.style.setProperty('--round-count', roundCount);
+
+  const rounds = Array.from(bracketEl.querySelectorAll('.round'));
+  if (rounds.length === 0) return;
+
+  const firstMatch = bracketEl.querySelector('.match');
+  const baseRoundStyle = rounds.length > 0 ? window.getComputedStyle(rounds[0]) : null;
+  const roundGap = baseRoundStyle ? parseFloat(baseRoundStyle.rowGap || baseRoundStyle.gap || '12') : 12;
+  const matchHeight = firstMatch?.offsetHeight || 0;
+  const unitSpacing = matchHeight + roundGap || 1;
+
+  rounds.forEach((roundEl) => {
+    const roundIndex = Number.parseInt(roundEl.dataset.roundIndex || '0', 10);
+    const gapSize = unitSpacing * Math.max(1, 2 ** roundIndex);
+    roundEl.style.gap = `${gapSize}px`;
+
+    if (roundIndex === 0) {
+      roundEl.style.marginTop = '0px';
+      return;
+    }
+
+    const offset = unitSpacing * (2 ** (roundIndex - 1) - 0.5);
+    roundEl.style.marginTop = `${offset}px`;
+  });
 }
