@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brackify - Spotify Playlist Brackets</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename = 'style.css') }}">
+</head>
+<body>
+  <header>
+    <div class="logo">Brackify</div>
+    <p>Create interactive brackets from your Spotify playlists.</p>
+  </header>
+
+  <main>
+    <section class="controls">
+      <form id="playlist-form">
+        <label for="playlist">Playlist URL or ID</label>
+        <input id="playlist" name="playlist" type="text" placeholder="https://open.spotify.com/playlist/..." required>
+
+        <div class="inline">
+          <div class="field">
+            <label for="order">Order</label>
+            <select id="order" name="order">
+              <option value="playlist">Playlist order</option>
+              <option value="randomized">Randomized</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="size">Bracket size</label>
+            <select id="size" name="size">
+              <option value="16">16</option>
+              <option value="32">32</option>
+              <option value="64">64</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit">Generate bracket</button>
+      </form>
+      <div id="status" role="status"></div>
+    </section>
+
+    <section id="bracket" class="bracket" aria-live="polite"></section>
+  </main>
+
+  <script src="{{ url_for('static', filename = 'app.js') }}" defer></script>
+</body>
+</html>
