@@ -23,6 +23,7 @@ class TrackInfo(TypedDict):
     artists: str
     album_name: str
     image_url: Optional[str]
+    preview_url: Optional[str]
 
 
 def extract_playlist_id(inp: str) -> str:
@@ -63,8 +64,13 @@ def fetch_playlist_tracks(inp: str, sp: Any, limit: int = 100) -> List[TrackInfo
         raise ValueError('limit must be a positive integer')
 
     while True:
-        page = sp.playlist_items(playlist_id = pid, offset = offset, limit = limit,
-                                 fields = 'items(added_at,track(id,name,album(name),artists(name))),next,total', additional_types = ['track'])
+        page = sp.playlist_items(
+            playlist_id = pid,
+            offset = offset,
+            limit = limit,
+            fields = 'items(added_at,track(id,name,preview_url,album(name,images(url)),artists(name))),next,total',
+            additional_types = ['track'],
+        )
 
         items = page.get('items', [])
         for item in items:
@@ -78,6 +84,7 @@ def fetch_playlist_tracks(inp: str, sp: Any, limit: int = 100) -> List[TrackInfo
             song_name = s.get('name')
             album_name = (s.get('album') or {}).get('name')
             artists = [a.get('name') for a in (s.get('artists') or []) if a.get('name')]
+            preview_url = s.get('preview_url')
 
             res.append({
                 'track_id': track_id,
@@ -85,6 +92,7 @@ def fetch_playlist_tracks(inp: str, sp: Any, limit: int = 100) -> List[TrackInfo
                 'artists': ', '.join(artists),
                 'album_name': album_name,
                 'image_url': image_url,
+                'preview_url': preview_url,
             })
 
         if not page.get('next'):
