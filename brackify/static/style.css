@@ -206,7 +206,7 @@ button[type='submit']:active {
 }
 
 .share-actions button {
-  padding: 10px 14px;
+  padding: 8px 18px;
   border-radius: 10px;
   border: 1px solid var(--accent);
   background: var(--accent);
@@ -261,7 +261,6 @@ button[type='submit']:active {
   justify-content: center;
   margin-top: 4px;
   margin-bottom: 12px;
-  align-self: flex-start;
   gap: 10px;
 }
 
