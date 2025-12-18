@@ -60,10 +60,14 @@ def create_app() -> Flask:
 
         playlist = (payload.get('playlist') or '').strip()
         order = (payload.get('order') or 'playlist').strip().lower()
+        bracket_name = (payload.get('bracket_name') or '').strip()
         size = payload.get('size')
 
         if not playlist:
             return jsonify({'error': 'playlist is required'}), 400
+
+        if not bracket_name:
+            return jsonify({'error': 'bracket_name is required'}), 400
 
         try:
             size_int = int(size)
@@ -90,6 +94,7 @@ def create_app() -> Flask:
             'seeds': seeds,
             'matches': chunk_matches(seeds),
             'total_tracks': len(tracks),
+            'bracket_name': bracket_name,
             'created_at': now().isoformat(),
         }
 

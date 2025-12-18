@@ -16,6 +16,9 @@
   <main>
     <section class="controls">
       <form id="playlist-form">
+        <label for="bracket_name">Your bracket name</label>
+        <input id="bracket_name" name="bracket_name" type="text" placeholder="Summer showdown" required>
+
         <label for="playlist">Playlist URL</label>
         <input id="playlist" name="playlist" type="text" placeholder="https://open.spotify.com/playlist/..." required>
 
@@ -30,8 +33,10 @@
           <div class="field">
             <label for="size">Size</label>
             <select id="size" name="size">
+              <option value="8">8</option>
               <option value="16">16</option>
               <option value="32">32</option>
+              <option value="64">64</option>
             </select>
           </div>
         </div>
@@ -39,6 +44,17 @@
         <button type="submit">Generate</button>
       </form>
       <div id="status" class="status" role="status" aria-live="polite" aria-hidden="true"></div>
+    </section>
+
+    <section class="featured" aria-labelledby="featured-title">
+      <div class="featured-header">
+        <p class="eyebrow" id="featured-title">Featured bracket</p>
+        <h2>Will's BC, NR Bracket</h2>
+        <p class="muted">Order: Sequential · Size: 16</p>
+      </div>
+      <a class="featured-card" href="https://open.spotify.com/playlist/61uHfaVzokKOLmQNWCNcT9?si=4b52514d51e84ad0" target="_blank" rel="noreferrer">
+        <img src="{{ url_for('static', filename = 'featured-bracket.svg') }}" alt="Will's BC, NR Bracket cover" loading="lazy">
+      </a>
     </section>
 
     <section id="bracket" class="bracket" aria-live="polite" hidden></section>

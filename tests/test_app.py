@@ -11,6 +11,7 @@ def _sample_bracket(bracket_id: str, created_at: datetime) -> dict:
         'seeds': [],
         'matches': [],
         'total_tracks': 4,
+        'bracket_name': 'Test bracket',
         'bracket_id': bracket_id,
         'share_url': f'/bracket/{bracket_id}',
         'created_at': created_at.isoformat(),
@@ -42,3 +43,20 @@ def test_active_bracket_stays_available():
     assert response.status_code == 200
     assert response.get_json()['bracket_id'] == 'fresh'
     assert 'fresh' in app.brackets
+
+
+def test_bracket_creation_requires_name(monkeypatch):
+    app = create_app()
+    client = app.test_client()
+
+    monkeypatch.setattr('brackify.app.get_spotify_client', lambda: None)
+    monkeypatch.setattr('brackify.app.fetch_playlist_tracks', lambda playlist, sp: [{'track_id': str(i), 'song_name': f'Song {i}', 'artists': 'Artist', 'album_name': 'Album', 'image_url': None} for i in range(1, 33)])
+
+    response = client.post('/api/bracket', json = {
+        'playlist': 'dummy',
+        'order': 'playlist',
+        'size': 16,
+    })
+
+    assert response.status_code == 400
+    assert 'bracket_name' in response.get_json()['error']

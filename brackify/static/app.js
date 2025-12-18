@@ -11,9 +11,8 @@ const shareCoverEl = document.getElementById('share-cover');
 const closeShareButton = document.getElementById('close-share');
 const resetButton = document.getElementById('reset-bracket');
 const bracketId = document.body?.dataset?.bracketId;
-const bracketToolbar = document.querySelector('.bracket-toolbar');
-const footerContent = document.querySelector('.footer-content');
 let shareLink = '';
+let bracketName = '';
 
 let bracketState = [];
 let finalWinnerId = null;
@@ -80,6 +79,7 @@ async function handleFormSubmit(event) {
 
   const payload = {
     playlist: form.playlist.value.trim(),
+    bracket_name: form.bracket_name.value.trim(),
     order: form.order.value,
     size: parseInt(form.size.value, 10),
   };
@@ -118,6 +118,7 @@ async function hydrateBracket(id) {
     }
 
     updateShareLink(data.share_url);
+    bracketName = (data.bracket_name || '').trim();
     initializeBracket(data.seeds || []);
 
     const missing = (data.seeds || []).filter((s) => !s).length;
@@ -557,43 +558,6 @@ function applyBracketLayout(roundCount) {
   if (!bracketEl) return;
 
   bracketEl.style.setProperty('--round-count', roundCount);
-
-  const rounds = Array.from(bracketEl.querySelectorAll('.round'));
-  rounds.forEach((roundEl) => {
-    roundEl.style.gap = '18px';
-    roundEl.style.marginTop = '0px';
-  });
-
-  if (bracketToolbar) {
-    const finalRound = bracketEl.querySelector('.round.final');
-    const finalMatch = finalRound?.querySelector('.match');
-    const alignTarget = finalMatch || finalRound;
-    const alignParentRect = bracketEl.parentElement?.getBoundingClientRect();
-
-    requestAnimationFrame(() => {
-      const targetRect = alignTarget?.getBoundingClientRect();
-
-      alignToFinal(bracketToolbar, targetRect, alignParentRect);
-      if (footerContent) {
-        alignToFinal(footerContent, targetRect, alignParentRect);
-      }
-    });
-  }
-}
-
-function alignToFinal(element, targetRect, parentRect) {
-  if (!element) return;
-
-  if (!targetRect || !parentRect) {
-    element.style.removeProperty('width');
-    element.style.removeProperty('margin-left');
-    return;
-  }
-
-  const width = targetRect.width;
-  const offset = targetRect.left - parentRect.left;
-  element.style.width = `${width}px`;
-  element.style.marginLeft = `${offset}px`;
 }
 
 function showShareModal(track) {
@@ -620,7 +584,8 @@ function showShareModal(track) {
   const link = shareLink || shareInput?.value || window.location.href;
   const song = track.song_name || 'this song';
   const artist = track.artists || 'Unknown artist';
-  const message = `I picked ${song} by ${artist} as the best track on Brackify. Play here: ${link}`;
+  const bracketLabel = bracketName?.trim() || 'this bracket';
+  const message = `I picked ${song} by ${artist} as the best track in ${bracketLabel} on Brackify. Play here: ${link}`;
   const normalizedMessage = message.trim();
 
   if (shareInput) {
