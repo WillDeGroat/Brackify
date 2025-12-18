@@ -76,8 +76,11 @@ main {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 26px 24px;
-  max-width: 980px;
+
+  width: min(680px, 100%); 
   margin: 0 auto;
+
+  display: block;
 }
 
 form {
