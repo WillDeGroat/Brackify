@@ -41,9 +41,21 @@ def create_app() -> Flask:
         for bid in expired_ids:
             brackets.pop(bid, None)
 
+    def brackets_match(payload: Dict[str, Any], playlist: str, size: int, order: str, bracket_name: str) -> bool:
+        if is_expired(payload.get('created_at')):
+            return False
+
+        return (
+            payload.get('playlist') == playlist
+            and payload.get('size') == size
+            and payload.get('order') == order
+            and payload.get('bracket_name') == bracket_name
+        )
+
     app.brackets = brackets  # type: ignore[attr-defined]
     app.is_expired = is_expired  # type: ignore[attr-defined]
     app.cleanup_expired_brackets = cleanup_expired_brackets  # type: ignore[attr-defined]
+    app.brackets_match = brackets_match  # type: ignore[attr-defined]
 
     @app.get('/')
     def index():
@@ -74,6 +86,11 @@ def create_app() -> Flask:
         except (TypeError, ValueError):
             return jsonify({'error': f'size must be one of {AllowedBracketSizes}'}), 400
 
+        existing_bracket = next((b for b in brackets.values() if brackets_match(b, playlist, size_int, order, bracket_name)), None)
+        if existing_bracket:
+            existing_bracket['created_at'] = now().isoformat()
+            return jsonify(existing_bracket)
+
         try:
             sp = get_spotify_client()
             tracks = fetch_playlist_tracks(playlist, sp)
@@ -96,6 +113,7 @@ def create_app() -> Flask:
             'total_tracks': len(tracks),
             'bracket_name': bracket_name,
             'created_at': now().isoformat(),
+            'playlist': playlist,
         }
 
         bracket_id = secrets.token_urlsafe(8)
