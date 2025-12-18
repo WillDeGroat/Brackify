@@ -25,7 +25,7 @@ Start the Flask server:
 FLASK_APP=brackify.app flask run --host=0.0.0.0 --port=8000
 ```
 
-Open `http://localhost:8000` and paste a Spotify playlist URL or ID. Choose the bracket order (playlist or randomized) and the desired size (16, 32, or 64). Click songs to advance them through the bracket. Empty slots remain empty and cannot advance when a matchup lacks two songs.
+Open `http://localhost:8000` and paste a Spotify playlist URL or ID. Choose the bracket order (playlist or randomized) and the desired size (8, 16, or 32). Click songs to advance them through the bracket. Empty slots remain empty and cannot advance when a matchup lacks two songs.
 
 ## Fetch playlist tracks
 
