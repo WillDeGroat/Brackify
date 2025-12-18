@@ -11,12 +11,13 @@ const shareCoverEl = document.getElementById('share-cover');
 const closeShareButton = document.getElementById('close-share');
 const resetButton = document.getElementById('reset-bracket');
 const bracketId = document.body?.dataset?.bracketId;
+const bracketToolbar = document.querySelector('.bracket-toolbar');
 
 let bracketState = [];
 let finalWinnerId = null;
 let previewAudio = null;
 let previewTimeout = null;
-let previewButtonRef = null;
+let previewSourceRef = null;
 let previewUrlRef = null;
 let initialSeeds = [];
 
@@ -78,14 +79,11 @@ async function handleFormSubmit(event) {
     }
 
     if (data.share_url) {
-      setStatus('Bracket ready! Opening your bracket...');
       window.location.href = data.share_url;
       return;
     }
-
-    setStatus('Bracket ready!');
   } catch (error) {
-    setStatus(error.message);
+    alert(error.message);
   }
 }
 
@@ -110,7 +108,7 @@ async function hydrateBracket(id) {
       setStatus('Bracket ready. Click a song to advance it forward.');
     }
   } catch (error) {
-    setStatus(error.message);
+    alert(error.message);
     if (bracketEl) {
       bracketEl.innerHTML = '';
     }
@@ -187,6 +185,8 @@ function clearDownstream(roundIndex, matchIndex) {
 }
 
 function handlePick(roundIndex, matchIndex, slotIndex) {
+  stopPreview();
+
   const matchup = bracketState[roundIndex][matchIndex];
   const choice = matchup[slotIndex];
   const opponent = matchup[slotIndex === 0 ? 1 : 0];
@@ -358,32 +358,26 @@ function renderCover(track) {
   wrapper.appendChild(img);
 
   if (track && track.preview_url) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'preview-button';
-    button.title = 'Play 15 second preview';
-    button.setAttribute('aria-label', `Play preview of ${track.song_name}`);
-    button.textContent = '▶';
+    const startPreview = () => playPreview(track.preview_url, wrapper);
 
-    button.addEventListener('click', (event) => {
+    wrapper.addEventListener('pointerenter', startPreview);
+    wrapper.addEventListener('pointerleave', stopPreview);
+    wrapper.addEventListener('pointerdown', (event) => {
       event.stopPropagation();
-      togglePreview(track.preview_url, button);
+      startPreview();
     });
-
-    wrapper.appendChild(button);
   }
 
   return wrapper;
 }
 
-function togglePreview(url, button) {
+function playPreview(url, sourceEl) {
   if (!url) return;
 
   const isSameTrack = previewUrlRef === url;
   const isPlaying = previewAudio && !previewAudio.paused;
 
   if (isSameTrack && isPlaying) {
-    stopPreview();
     return;
   }
 
@@ -392,24 +386,19 @@ function togglePreview(url, button) {
   previewAudio = new Audio(url);
   previewUrlRef = url;
   previewAudio.volume = 0.9;
+  previewAudio.currentTime = 0;
   previewAudio.addEventListener('ended', stopPreview);
+  previewSourceRef = sourceEl;
 
-  if (button) {
-    previewButtonRef = button;
-    setPreviewButtonState(button, true);
+  if (previewSourceRef) {
+    previewSourceRef.classList.add('is-previewing');
   }
 
   previewAudio.play().catch(() => {
     stopPreview();
   });
 
-  previewTimeout = setTimeout(stopPreview, 15000);
-}
-
-function setPreviewButtonState(button, playing) {
-  button.textContent = playing ? '❚❚' : '▶';
-  button.classList.toggle('is-playing', playing);
-  button.setAttribute('aria-pressed', playing ? 'true' : 'false');
+  previewTimeout = setTimeout(stopPreview, 10000);
 }
 
 function stopPreview() {
@@ -423,9 +412,9 @@ function stopPreview() {
     previewTimeout = null;
   }
 
-  if (previewButtonRef) {
-    setPreviewButtonState(previewButtonRef, false);
-    previewButtonRef = null;
+  if (previewSourceRef) {
+    previewSourceRef.classList.remove('is-previewing');
+    previewSourceRef = null;
   }
 
   previewUrlRef = null;
@@ -502,6 +491,28 @@ function applyBracketLayout(roundCount) {
     roundEl.style.gap = '18px';
     roundEl.style.marginTop = '0px';
   });
+
+  const firstRoundMatch = bracketEl.querySelector('.round[data-round-index="0"] .match');
+
+  if (bracketToolbar) {
+    if (firstRoundMatch) {
+      const width = firstRoundMatch.offsetWidth;
+      const parentRect = bracketEl.parentElement?.getBoundingClientRect();
+      const matchRect = firstRoundMatch.getBoundingClientRect();
+
+      if (parentRect) {
+        const offset = matchRect.left - parentRect.left;
+        bracketToolbar.style.width = `${width}px`;
+        bracketToolbar.style.marginLeft = `${offset}px`;
+      } else {
+        bracketToolbar.style.removeProperty('width');
+        bracketToolbar.style.removeProperty('margin-left');
+      }
+    } else {
+      bracketToolbar.style.removeProperty('width');
+      bracketToolbar.style.removeProperty('margin-left');
+    }
+  }
 }
 
 function showShareModal(track) {
