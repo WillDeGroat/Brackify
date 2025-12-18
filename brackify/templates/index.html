@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Brackify - Spotify Playlist Brackets</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename = 'style.css') }}">
-</head>
-<body>
-  <header>
-    <div class="logo">Brackify</div>
-    <p>Create interactive brackets from your Spotify playlists</p>
-  </header>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brackify - Spotify Playlist Brackets</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'style.css') }}">
+  </head>
+  <body>
+    <header>
+      <div class="logo" aria-label="Brackify">B</div>
+      <p>Create interactive brackets from your Spotify playlists</p>
+    </header>
 
   <main>
     <section class="controls">
@@ -38,13 +38,14 @@
 
         <button type="submit">Generate</button>
       </form>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
     </section>
 
     <section id="bracket" class="bracket" aria-live="polite" hidden></section>
   </main>
 
   <footer>
-    <p>Created by Will (@wnfyu).</p>
+    <p>Created by Will (<a href="https://x.com/wnfyu" target="_blank" rel="noreferrer">@wnfyu</a>).</p>
   </footer>
 
   <script src="{{ url_for('static', filename = 'app.js') }}" defer></script>

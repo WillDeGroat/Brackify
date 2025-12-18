@@ -8,6 +8,7 @@ const shareWinnerEl = document.getElementById('share-winner');
 const shareAlbumEl = document.getElementById('share-album');
 const shareArtistEl = document.getElementById('share-artist');
 const shareCoverEl = document.getElementById('share-cover');
+const shareMessageEl = document.getElementById('share-message');
 const closeShareButton = document.getElementById('close-share');
 const resetButton = document.getElementById('reset-bracket');
 const bracketId = document.body?.dataset?.bracketId;
@@ -20,6 +21,11 @@ let previewTimeout = null;
 let previewSourceRef = null;
 let previewUrlRef = null;
 let initialSeeds = [];
+let shareCopyText = '';
+
+if (shareInput && shareInput.value) {
+  shareCopyText = shareInput.value;
+}
 
 if (form) {
   form.addEventListener('submit', handleFormSubmit);
@@ -49,10 +55,17 @@ if (bracketId) {
   hydrateBracket(bracketId);
 }
 
-function setStatus(message) {
-  if (statusEl) {
-    statusEl.textContent = message;
+window.addEventListener('resize', () => {
+  if (bracketState.length > 0) {
+    applyBracketLayout(bracketState.length);
   }
+});
+
+function setStatus(message, isError = false) {
+  if (!statusEl) return;
+
+  statusEl.textContent = message || '';
+  statusEl.classList.toggle('error', Boolean(isError && message));
 }
 
 async function handleFormSubmit(event) {
@@ -83,7 +96,7 @@ async function handleFormSubmit(event) {
       return;
     }
   } catch (error) {
-    alert(error.message);
+    setStatus(error.message, true);
   }
 }
 
@@ -108,7 +121,7 @@ async function hydrateBracket(id) {
       setStatus('Bracket ready. Click a song to advance it forward.');
     }
   } catch (error) {
-    alert(error.message);
+    setStatus(error.message, true);
     if (bracketEl) {
       bracketEl.innerHTML = '';
     }
@@ -118,13 +131,15 @@ async function hydrateBracket(id) {
 function updateShareLink(url) {
   if (shareInput && url) {
     shareInput.value = url;
+    shareCopyText = url;
   }
 }
 
 function handleCopyLink() {
-  if (!shareInput) return;
+  const textToCopy = shareCopyText || shareInput?.value;
+  if (!textToCopy) return;
 
-  navigator.clipboard.writeText(shareInput.value)
+  navigator.clipboard.writeText(textToCopy)
     .then(() => {
       copyButton.textContent = 'Copied!';
       setTimeout(() => {
@@ -492,22 +507,20 @@ function applyBracketLayout(roundCount) {
     roundEl.style.marginTop = '0px';
   });
 
-  const firstRoundMatch = bracketEl.querySelector('.round[data-round-index="0"] .match');
-
   if (bracketToolbar) {
-    if (firstRoundMatch) {
-      const width = firstRoundMatch.offsetWidth;
-      const parentRect = bracketEl.parentElement?.getBoundingClientRect();
-      const matchRect = firstRoundMatch.getBoundingClientRect();
+    const matches = Array.from(bracketEl.querySelectorAll('.match'));
+    const parentRect = bracketToolbar.parentElement?.getBoundingClientRect();
 
-      if (parentRect) {
-        const offset = matchRect.left - parentRect.left;
+    if (matches.length > 0 && parentRect) {
+      requestAnimationFrame(() => {
+        const bracketRect = bracketEl.getBoundingClientRect();
+        const rightmost = Math.max(...matches.map((m) => m.getBoundingClientRect().right));
+        const width = rightmost - bracketRect.left;
+        const offset = bracketRect.left - parentRect.left;
+
         bracketToolbar.style.width = `${width}px`;
         bracketToolbar.style.marginLeft = `${offset}px`;
-      } else {
-        bracketToolbar.style.removeProperty('width');
-        bracketToolbar.style.removeProperty('margin-left');
-      }
+      });
     } else {
       bracketToolbar.style.removeProperty('width');
       bracketToolbar.style.removeProperty('margin-left');
@@ -536,6 +549,17 @@ function showShareModal(track) {
     shareCoverEl.alt = track.song_name ? `${track.song_name} cover art` : 'Winning album cover';
   }
 
+  const link = shareInput?.value || window.location.href;
+  const song = track.song_name || 'this song';
+  const artist = track.artists || 'Unknown artist';
+  const message = `I picked ${song} by ${artist} as the best song on Brackify. Listen here: ${link}`;
+
+  if (shareMessageEl) {
+    shareMessageEl.textContent = message;
+  }
+
+  shareCopyText = message;
+
   shareModal.classList.remove('hidden');
 }
 
@@ -543,6 +567,12 @@ function hideShareModal() {
   if (shareModal) {
     shareModal.classList.add('hidden');
   }
+
+  if (shareMessageEl) {
+    shareMessageEl.textContent = '';
+  }
+
+  shareCopyText = shareInput?.value || '';
 }
 
 function resetBracket() {

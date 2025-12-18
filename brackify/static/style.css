@@ -27,10 +27,17 @@ header {
 }
 
 header .logo {
+  display: inline-flex;
+  width: 64px;
+  height: 64px;
+  align-items: center;
+  justify-content: center;
   font-size: 38px;
   font-weight: 800;
   letter-spacing: -0.05em;
-  color: var(--text);
+  color: #ffffff;
+  background: #000000;
+  border-radius: 18px;
   font-family: 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
 }
 
@@ -66,8 +73,8 @@ main {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 20px;
-  max-width: 760px;
+  padding: 26px 24px;
+  max-width: 860px;
   margin: 0 auto;
 }
 
@@ -86,13 +93,13 @@ form label {
 
 form input, form select {
   width: 100%;
-  padding: 11px;
+  padding: 13px 14px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: #ffffff;
   color: var(--text);
   outline: none;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 form input:focus, form select:focus {
@@ -115,7 +122,7 @@ form input:focus, form select:focus {
 
 button[type='submit'] {
   margin-top: 4px;
-  padding: 10px 18px;
+  padding: 12px 20px;
   background: var(--accent);
   border: 1px solid var(--accent);
   border-radius: 10px;
@@ -145,6 +152,18 @@ button[type='submit']:active {
   margin-left: auto;
 }
 
+.status {
+  margin-top: 10px;
+  color: var(--muted);
+  min-height: 22px;
+  font-size: 14px;
+}
+
+.status.error {
+  color: #c02626;
+  font-weight: 600;
+}
+
 .share-top {
   display: flex;
   justify-content: space-between;
@@ -162,11 +181,11 @@ button[type='submit']:active {
 .share-actions input {
   flex: 1;
   min-width: 0;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  height: 38px;
-  font-size: 14px;
+  height: 42px;
+  font-size: 15px;
 }
 
 .share-actions button {
@@ -177,6 +196,16 @@ button[type='submit']:active {
   color: #fff;
   font-weight: 700;
   cursor: pointer;
+  height: 42px;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.share-message {
+  margin: 10px 0 0;
+  font-size: 14px;
 }
 
 .eyebrow {
@@ -197,11 +226,27 @@ button[type='submit']:active {
   font-weight: 700;
 }
 
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
 .bracket-toolbar {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 12px;
   align-self: flex-start;
+  gap: 10px;
 }
 
 .bracket {
@@ -285,7 +330,7 @@ button[type='submit']:active {
   position: relative;
   width: 82px;
   height: 82px;
-  border-radius: 0;
+  border-radius: 14px;
   overflow: hidden;
   background: #ececec;
   border: 1px solid var(--border);
@@ -298,13 +343,13 @@ button[type='submit']:active {
   inset: 0;
   border: 2px solid var(--accent);
   pointer-events: none;
-  border-radius: 0;
+  border-radius: 14px;
 }
 
 .cover {
   width: 100%;
   height: 100%;
-  border-radius: 0;
+  border-radius: 14px;
   object-fit: cover;
 }
 
@@ -383,7 +428,7 @@ button[type='submit']:active {
 .share-cover-frame {
   width: 120px;
   height: 120px;
-  border-radius: 0;
+  border-radius: 14px;
   overflow: hidden;
   border: 1px solid var(--border);
   background: #f0f0f0;
@@ -393,6 +438,7 @@ button[type='submit']:active {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 14px;
 }
 
 .share-meta h2 {

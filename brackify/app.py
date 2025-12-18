@@ -73,6 +73,10 @@ def create_app() -> Flask:
         try:
             sp = get_spotify_client()
             tracks = fetch_playlist_tracks(playlist, sp)
+
+            if len(tracks) < size_int:
+                raise ValueError(f'Not enough tracks for a {size_int}-song bracket. This playlist has {len(tracks)} track(s).')
+
             seeds = build_seed_list(tracks, size_int, order = order)
         except ValueError as exc:
             return jsonify({'error': str(exc)}), 400
