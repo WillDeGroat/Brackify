@@ -1,49 +1,35 @@
 from typing import Any, Dict, Optional
 
 from datetime import datetime, timedelta, timezone
+import os
 import secrets
 from flask import Flask, jsonify, render_template, request, url_for
 from brackify.brackets import AllowedBracketSizes, build_seed_list, chunk_matches
 from brackify.spotify_client import get_spotify_client, fetch_playlist_tracks
+from brackify.store import BracketStore, create_store_from_env
 
 EXPIRATION_HOURS = 72
 EXPIRATION_DELTA = timedelta(hours = EXPIRATION_HOURS)
 
 
-def create_app() -> Flask:
+def now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def remaining_ttl_seconds(created_at: datetime, expiration_delta: timedelta) -> int:
+    elapsed = now() - created_at
+    remaining = expiration_delta - elapsed
+    return max(0, int(remaining.total_seconds()))
+
+
+def create_app(store: Optional[BracketStore] = None, expiration_hours: Optional[int] = None) -> Flask:
     app = Flask(__name__)
-    brackets: Dict[str, Dict[str, Any]] = {}
 
-    def now() -> datetime:
-        return datetime.now(timezone.utc)
+    configured_hours = expiration_hours or int(os.getenv('BRACKET_EXPIRATION_HOURS', EXPIRATION_HOURS))
+    app.expiration_delta = timedelta(hours = configured_hours)  # type: ignore[attr-defined]
+    app.bracket_ttl_seconds = int(app.expiration_delta.total_seconds())  # type: ignore[attr-defined]
 
-    def parse_timestamp(value: Any) -> Optional[datetime]:
-        if not value:
-            return None
-
-        if isinstance(value, datetime):
-            return value
-
-        try:
-            return datetime.fromisoformat(value)
-        except (TypeError, ValueError):
-            return None
-
-    def is_expired(created_at: Any) -> bool:
-        created_dt = parse_timestamp(created_at)
-        if not created_dt:
-            return False
-
-        return now() - created_dt > EXPIRATION_DELTA
-
-    def cleanup_expired_brackets():
-        expired_ids = [bid for bid, payload in brackets.items() if is_expired(payload.get('created_at'))]
-        for bid in expired_ids:
-            brackets.pop(bid, None)
-
-    app.brackets = brackets  # type: ignore[attr-defined]
-    app.is_expired = is_expired  # type: ignore[attr-defined]
-    app.cleanup_expired_brackets = cleanup_expired_brackets  # type: ignore[attr-defined]
+    app.bracket_store = store or create_store_from_env()  # type: ignore[attr-defined]
 
     @app.get('/')
     def index():
@@ -55,7 +41,6 @@ def create_app() -> Flask:
 
     @app.post('/api/bracket')
     def api_bracket():
-        cleanup_expired_brackets()
         payload = request.get_json(silent = True) or {}
 
         playlist = (payload.get('playlist') or '').strip()
@@ -87,7 +72,10 @@ def create_app() -> Flask:
         except RuntimeError as exc:
             return jsonify({'error': str(exc)}), 500
 
-        bracket_payload = {
+        created_at = now()
+        bracket_id = secrets.token_urlsafe(8)
+
+        bracket_payload: Dict[str, Any] = {
             'size': size_int,
             'order': order,
             'seed_count': len(seeds),
@@ -95,28 +83,22 @@ def create_app() -> Flask:
             'matches': chunk_matches(seeds),
             'total_tracks': len(tracks),
             'bracket_name': bracket_name,
-            'created_at': now().isoformat(),
+            'bracket_id': bracket_id,
+            'share_url': url_for('view_bracket', bracket_id = bracket_id, _external = True),
+            'created_at': created_at.isoformat(),
         }
 
-        bracket_id = secrets.token_urlsafe(8)
-        bracket_payload['bracket_id'] = bracket_id
-        bracket_payload['share_url'] = url_for('view_bracket', bracket_id = bracket_id, _external = True)
-
-        brackets[bracket_id] = bracket_payload
+        ttl_seconds = remaining_ttl_seconds(created_at, app.expiration_delta)  # type: ignore[attr-defined]
+        app.bracket_store.save(bracket_id, bracket_payload, ttl_seconds)  # type: ignore[attr-defined]
 
         return jsonify(bracket_payload)
 
     @app.get('/api/bracket/<bracket_id>')
     def get_bracket(bracket_id: str):
-        cleanup_expired_brackets()
-        bracket = brackets.get(bracket_id)
+        bracket = app.bracket_store.get(bracket_id)  # type: ignore[attr-defined]
 
         if not bracket:
-            return jsonify({'error': 'Bracket not found'}), 404
-
-        if is_expired(bracket.get('created_at')):
-            brackets.pop(bracket_id, None)
-            return jsonify({'error': 'Bracket expired'}), 404
+            return jsonify({'error': 'Bracket not found or expired'}), 404
 
         return jsonify(bracket)
 
