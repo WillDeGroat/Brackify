@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Brackify - Your Bracket</title>
+  <title>Brackify</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename = 'favicon.svg') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename = 'style.css') }}">
 </head>
   <body data-bracket-id="{{ bracket_id }}">
   <header>
-    <div class="logo" aria-label="Brackify">B</div>
+    <div class="logo" aria-label="Brackify">Brackify</div>
     <p>Create interactive brackets from your Spotify playlists</p>
   </header>
 
@@ -18,7 +19,6 @@
       <button id="reset-bracket" type="button" class="ghost">Reset</button>
     </div>
     <section id="bracket" class="bracket" aria-live="polite"></section>
-    <div id="status" class="status" role="status" aria-live="polite"></div>
   </main>
 
   <footer>
@@ -40,7 +40,7 @@
       </div>
       <div class="share-actions">
         <input id="share-url" aria-label="Shareable bracket link" value="{{ url_for('view_bracket', bracket_id = bracket_id, _external = True) }}" readonly>
-        <button id="copy-share" type="button">Copy link</button>
+        <button id="copy-share" type="button">Copy</button>
       </div>
       <p id="share-message" class="share-message muted"></p>
       <div class="modal-actions">

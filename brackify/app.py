@@ -75,7 +75,7 @@ def create_app() -> Flask:
             tracks = fetch_playlist_tracks(playlist, sp)
 
             if len(tracks) < size_int:
-                raise ValueError(f'Not enough tracks for a {size_int}-song bracket. This playlist has {len(tracks)} track(s).')
+                raise ValueError(f'This playlist does not have enough tracks for a {size_int}-song bracket.')
 
             seeds = build_seed_list(tracks, size_int, order = order)
         except ValueError as exc:
