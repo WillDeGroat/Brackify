@@ -9,6 +9,8 @@ let bracketState = [];
 let finalWinnerId = null;
 let previewAudio = null;
 let previewTimeout = null;
+let previewButtonRef = null;
+let previewUrlRef = null;
 
 if (form) {
   form.addEventListener('submit', handleFormSubmit);
@@ -271,6 +273,7 @@ function renderBracket() {
           slotEl.appendChild(renderCover(slot));
 
           const meta = document.createElement('div');
+          meta.className = 'meta';
           const title = document.createElement('p');
           title.className = 'song-title';
           title.textContent = slot.song_name;
@@ -308,6 +311,9 @@ function renderBracket() {
 }
 
 function renderCover(track) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'cover-wrapper';
+
   const img = document.createElement('img');
   img.className = 'cover';
   const fallback = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><rect width="80" height="80" rx="12" fill="%23f2f2f2"/><text x="40" y="46" text-anchor="middle" font-size="26" fill="%23888888" font-family="Helvetica, Arial, sans-serif">♪</text></svg>';
@@ -320,21 +326,64 @@ function renderCover(track) {
 
   img.alt = track ? `${track.song_name} cover art` : 'Empty slot';
 
+  wrapper.appendChild(img);
+
   if (track && track.preview_url) {
-    img.classList.add('cover-preview');
-    img.title = 'Play 15 second preview';
-    img.addEventListener('click', (event) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'preview-button';
+    button.title = 'Play 15 second preview';
+    button.setAttribute('aria-label', `Play preview of ${track.song_name}`);
+    button.textContent = '▶';
+
+    button.addEventListener('click', (event) => {
       event.stopPropagation();
-      playPreview(track.preview_url);
+      togglePreview(track.preview_url, button);
     });
+
+    wrapper.appendChild(button);
   }
 
-  return img;
+  return wrapper;
 }
 
-function playPreview(url) {
+function togglePreview(url, button) {
   if (!url) return;
 
+  const isSameTrack = previewUrlRef === url;
+  const isPlaying = previewAudio && !previewAudio.paused;
+
+  if (isSameTrack && isPlaying) {
+    stopPreview();
+    return;
+  }
+
+  stopPreview();
+
+  previewAudio = new Audio(url);
+  previewUrlRef = url;
+  previewAudio.volume = 0.9;
+  previewAudio.addEventListener('ended', stopPreview);
+
+  if (button) {
+    previewButtonRef = button;
+    setPreviewButtonState(button, true);
+  }
+
+  previewAudio.play().catch(() => {
+    stopPreview();
+  });
+
+  previewTimeout = setTimeout(stopPreview, 15000);
+}
+
+function setPreviewButtonState(button, playing) {
+  button.textContent = playing ? '❚❚' : '▶';
+  button.classList.toggle('is-playing', playing);
+  button.setAttribute('aria-pressed', playing ? 'true' : 'false');
+}
+
+function stopPreview() {
   if (previewAudio) {
     previewAudio.pause();
     previewAudio = null;
@@ -345,13 +394,12 @@ function playPreview(url) {
     previewTimeout = null;
   }
 
-  previewAudio = new Audio(url);
-  previewAudio.volume = 0.9;
-  previewAudio.play().catch(() => {});
+  if (previewButtonRef) {
+    setPreviewButtonState(previewButtonRef, false);
+    previewButtonRef = null;
+  }
 
-  previewTimeout = setTimeout(() => {
-    previewAudio?.pause();
-  }, 15000);
+  previewUrlRef = null;
 }
 
 function isSelected(roundIndex, matchIndex, slotIndex, track) {
@@ -421,25 +469,17 @@ function applyBracketLayout(roundCount) {
   bracketEl.style.setProperty('--round-count', roundCount);
 
   const rounds = Array.from(bracketEl.querySelectorAll('.round'));
-  if (rounds.length === 0) return;
-
   const firstMatch = bracketEl.querySelector('.match');
-  const baseRoundStyle = rounds.length > 0 ? window.getComputedStyle(rounds[0]) : null;
-  const roundGap = baseRoundStyle ? parseFloat(baseRoundStyle.rowGap || baseRoundStyle.gap || '12') : 12;
-  const matchHeight = firstMatch?.offsetHeight || 0;
-  const unitSpacing = matchHeight + roundGap || 1;
+  const matchHeight = firstMatch?.getBoundingClientRect().height || 0;
+  const baseGap = 18;
+  const baseStride = matchHeight + baseGap || 1;
 
   rounds.forEach((roundEl) => {
     const roundIndex = Number.parseInt(roundEl.dataset.roundIndex || '0', 10);
-    const gapSize = unitSpacing * Math.max(1, 2 ** roundIndex);
-    roundEl.style.gap = `${gapSize}px`;
+    const stride = baseStride * Math.max(1, 2 ** roundIndex);
+    const gap = stride - matchHeight;
 
-    if (roundIndex === 0) {
-      roundEl.style.marginTop = '0px';
-      return;
-    }
-
-    const offset = unitSpacing * (2 ** (roundIndex - 1) - 0.5);
-    roundEl.style.marginTop = `${offset}px`;
+    roundEl.style.gap = `${Math.max(gap, baseGap)}px`;
+    roundEl.style.marginTop = '0px';
   });
 }
