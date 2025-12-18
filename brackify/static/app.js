@@ -9,6 +9,8 @@ let bracketState = [];
 let finalWinnerId = null;
 let previewAudio = null;
 let previewTimeout = null;
+let previewButtonRef = null;
+let previewUrlRef = null;
 
 if (form) {
   form.addEventListener('submit', handleFormSubmit);
@@ -336,7 +338,7 @@ function renderCover(track) {
 
     button.addEventListener('click', (event) => {
       event.stopPropagation();
-      playPreview(track.preview_url);
+      togglePreview(track.preview_url, button);
     });
 
     wrapper.appendChild(button);
@@ -345,9 +347,43 @@ function renderCover(track) {
   return wrapper;
 }
 
-function playPreview(url) {
+function togglePreview(url, button) {
   if (!url) return;
 
+  const isSameTrack = previewUrlRef === url;
+  const isPlaying = previewAudio && !previewAudio.paused;
+
+  if (isSameTrack && isPlaying) {
+    stopPreview();
+    return;
+  }
+
+  stopPreview();
+
+  previewAudio = new Audio(url);
+  previewUrlRef = url;
+  previewAudio.volume = 0.9;
+  previewAudio.addEventListener('ended', stopPreview);
+
+  if (button) {
+    previewButtonRef = button;
+    setPreviewButtonState(button, true);
+  }
+
+  previewAudio.play().catch(() => {
+    stopPreview();
+  });
+
+  previewTimeout = setTimeout(stopPreview, 15000);
+}
+
+function setPreviewButtonState(button, playing) {
+  button.textContent = playing ? '❚❚' : '▶';
+  button.classList.toggle('is-playing', playing);
+  button.setAttribute('aria-pressed', playing ? 'true' : 'false');
+}
+
+function stopPreview() {
   if (previewAudio) {
     previewAudio.pause();
     previewAudio = null;
@@ -358,13 +394,12 @@ function playPreview(url) {
     previewTimeout = null;
   }
 
-  previewAudio = new Audio(url);
-  previewAudio.volume = 0.9;
-  previewAudio.play().catch(() => {});
+  if (previewButtonRef) {
+    setPreviewButtonState(previewButtonRef, false);
+    previewButtonRef = null;
+  }
 
-  previewTimeout = setTimeout(() => {
-    previewAudio?.pause();
-  }, 15000);
+  previewUrlRef = null;
 }
 
 function isSelected(roundIndex, matchIndex, slotIndex, track) {
@@ -434,8 +469,17 @@ function applyBracketLayout(roundCount) {
   bracketEl.style.setProperty('--round-count', roundCount);
 
   const rounds = Array.from(bracketEl.querySelectorAll('.round'));
+  const firstMatch = bracketEl.querySelector('.match');
+  const matchHeight = firstMatch?.getBoundingClientRect().height || 0;
+  const baseGap = 18;
+  const baseStride = matchHeight + baseGap || 1;
+
   rounds.forEach((roundEl) => {
-    roundEl.style.gap = '18px';
+    const roundIndex = Number.parseInt(roundEl.dataset.roundIndex || '0', 10);
+    const stride = baseStride * Math.max(1, 2 ** roundIndex);
+    const gap = stride - matchHeight;
+
+    roundEl.style.gap = `${Math.max(gap, baseGap)}px`;
     roundEl.style.marginTop = '0px';
   });
 }

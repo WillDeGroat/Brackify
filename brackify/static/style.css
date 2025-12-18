@@ -179,7 +179,7 @@ button[type='submit']:active {
 
 .bracket {
   display: grid;
-  grid-template-columns: repeat(var(--round-count, 1), minmax(0, 1fr));
+  grid-template-columns: repeat(var(--round-count, 1), minmax(260px, 1fr));
   gap: 18px;
   margin-top: 6px;
   overflow: visible;
@@ -286,6 +286,7 @@ button[type='submit']:active {
 }
 
 .cover-wrapper:hover .preview-button,
+.preview-button.is-playing,
 .preview-button:focus-visible {
   opacity: 1;
 }
