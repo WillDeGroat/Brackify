@@ -3,6 +3,11 @@ const bracketEl = document.getElementById('bracket');
 const statusEl = document.getElementById('status');
 const shareInput = document.getElementById('share-url');
 const copyButton = document.getElementById('copy-share');
+const shareModal = document.getElementById('share-modal');
+const shareWinnerEl = document.getElementById('share-winner');
+const shareAlbumEl = document.getElementById('share-album');
+const closeShareButton = document.getElementById('close-share');
+const resetButton = document.getElementById('reset-bracket');
 const bracketId = document.body?.dataset?.bracketId;
 
 let bracketState = [];
@@ -11,6 +16,7 @@ let previewAudio = null;
 let previewTimeout = null;
 let previewButtonRef = null;
 let previewUrlRef = null;
+let initialSeeds = [];
 
 if (form) {
   form.addEventListener('submit', handleFormSubmit);
@@ -18,6 +24,22 @@ if (form) {
 
 if (copyButton && shareInput) {
   copyButton.addEventListener('click', handleCopyLink);
+}
+
+if (closeShareButton) {
+  closeShareButton.addEventListener('click', hideShareModal);
+}
+
+if (shareModal) {
+  shareModal.addEventListener('click', (event) => {
+    if (event.target === shareModal) {
+      hideShareModal();
+    }
+  });
+}
+
+if (resetButton) {
+  resetButton.addEventListener('click', resetBracket);
 }
 
 if (bracketId) {
@@ -121,6 +143,9 @@ function trackKey(track) {
 function initializeBracket(seeds) {
   finalWinnerId = null;
   bracketState = [];
+  initialSeeds = (seeds || []).map((s) => (s ? {...s} : null));
+  hideShareModal();
+  stopPreview();
 
   const matches = chunkMatches(seeds);
   bracketState.push(matches);
@@ -174,6 +199,7 @@ function handlePick(roundIndex, matchIndex, slotIndex) {
       finalWinnerId = null;
       setStatus('');
       renderBracket();
+      hideShareModal();
       return;
     }
 
@@ -181,6 +207,7 @@ function handlePick(roundIndex, matchIndex, slotIndex) {
     setStatus(`${choice.song_name} wins the bracket!`);
     renderBracket();
     launchConfetti();
+    showShareModal(choice);
     return;
   }
 
@@ -469,17 +496,38 @@ function applyBracketLayout(roundCount) {
   bracketEl.style.setProperty('--round-count', roundCount);
 
   const rounds = Array.from(bracketEl.querySelectorAll('.round'));
-  const firstMatch = bracketEl.querySelector('.match');
-  const matchHeight = firstMatch?.getBoundingClientRect().height || 0;
-  const baseGap = 18;
-  const baseStride = matchHeight + baseGap || 1;
-
   rounds.forEach((roundEl) => {
-    const roundIndex = Number.parseInt(roundEl.dataset.roundIndex || '0', 10);
-    const stride = baseStride * Math.max(1, 2 ** roundIndex);
-    const gap = stride - matchHeight;
-
-    roundEl.style.gap = `${Math.max(gap, baseGap)}px`;
+    roundEl.style.gap = '18px';
     roundEl.style.marginTop = '0px';
   });
+}
+
+function showShareModal(track) {
+  if (!shareModal || !track) return;
+
+  if (shareWinnerEl) {
+    shareWinnerEl.textContent = track.song_name || 'Unknown winner';
+  }
+
+  if (shareAlbumEl) {
+    const parts = [];
+    if (track.album_name) parts.push(track.album_name);
+    if (track.artists) parts.push(track.artists);
+    shareAlbumEl.textContent = parts.join(' • ');
+  }
+
+  shareModal.classList.remove('hidden');
+}
+
+function hideShareModal() {
+  if (shareModal) {
+    shareModal.classList.add('hidden');
+  }
+}
+
+function resetBracket() {
+  if (initialSeeds.length === 0) return;
+  finalWinnerId = null;
+  initializeBracket(initialSeeds);
+  setStatus('Bracket reset.');
 }
