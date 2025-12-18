@@ -121,6 +121,11 @@ main {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
   padding: 0;
   background: transparent;
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
 }
 
 .featured-card img {
@@ -558,7 +563,11 @@ footer p {
 }
 
 .footer-content a {
-  color: var(--accent);
+  color: LinkText;
+}
+
+.footer-content a:visited {
+  color: VisitedText;
 }
 
 .footer-content a:hover {
