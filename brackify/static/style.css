@@ -608,9 +608,66 @@ footer a:hover {
     flex-direction: column;
   }
 
+  main {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .bracket {
+    grid-template-columns: repeat(var(--round-count, 1), minmax(240px, 1fr));
+    justify-content: flex-start;
+    justify-items: stretch;
+    overflow-x: auto;
+    overflow-y: visible;
+    padding: 4px 12px 14px;
+    margin: 0 -12px;
+    scroll-snap-type: x proximity;
+    scrollbar-gutter: stable both-edges;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .bracket::-webkit-scrollbar {
+    height: 10px;
+  }
+
+  .bracket::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 999px;
+  }
+
+  .bracket::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
   .share {
     margin: 0;
     max-width: unset;
+  }
+
+  .share-modal {
+    align-items: flex-start;
+    padding: 16px 10px;
+  }
+
+  .share-card {
+    width: 100%;
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .share-header {
+    grid-template-columns: 92px 1fr;
+    gap: 10px;
+  }
+
+  .share-cover-frame {
+    width: 92px;
+    height: 92px;
+  }
+
+  .share-meta h2,
+  .share-card h2 {
+    font-size: 20px;
   }
 
   .share-top {
@@ -627,7 +684,8 @@ footer a:hover {
   }
 
   .round {
-    min-width: 180px;
+    min-width: 240px;
+    scroll-snap-align: start;
   }
 
   .slot {
