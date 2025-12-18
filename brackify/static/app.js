@@ -8,11 +8,11 @@ const shareWinnerEl = document.getElementById('share-winner');
 const shareAlbumEl = document.getElementById('share-album');
 const shareArtistEl = document.getElementById('share-artist');
 const shareCoverEl = document.getElementById('share-cover');
-const shareMessageEl = document.getElementById('share-message');
 const closeShareButton = document.getElementById('close-share');
 const resetButton = document.getElementById('reset-bracket');
 const bracketId = document.body?.dataset?.bracketId;
 const bracketToolbar = document.querySelector('.bracket-toolbar');
+const footerContent = document.querySelector('.footer-content');
 let shareLink = '';
 
 let bracketState = [];
@@ -25,8 +25,9 @@ let initialSeeds = [];
 let shareCopyText = '';
 
 if (shareInput && shareInput.value) {
-  shareCopyText = shareInput.value;
-  shareLink = shareInput.value;
+  const normalized = shareInput.value.trim();
+  shareCopyText = normalized;
+  shareLink = normalized;
 }
 
 if (form) {
@@ -135,26 +136,71 @@ async function hydrateBracket(id) {
 
 function updateShareLink(url) {
   if (shareInput && url) {
-    shareInput.value = url;
-    shareCopyText = url;
-    shareLink = url;
+    const normalized = url.trim();
+    shareInput.value = normalized;
+    shareCopyText = normalized;
+    shareLink = normalized;
   }
 }
 
 function handleCopyLink() {
-  const textToCopy = shareCopyText || shareInput?.value;
+  const textToCopy = (shareCopyText || shareInput?.value || '').trim();
   if (!textToCopy) return;
 
-  navigator.clipboard.writeText(textToCopy)
-    .then(() => {
-      copyButton.textContent = 'Copied!';
-      setTimeout(() => {
-        copyButton.textContent = 'Copy';
-      }, 1600);
-    })
-    .catch(() => {
-      copyButton.textContent = 'Unable to copy';
-    });
+  const onSuccess = () => {
+    copyButton.textContent = 'Copied!';
+    setTimeout(() => {
+      copyButton.textContent = 'Copy';
+    }, 1600);
+  };
+
+  const onFailure = () => {
+    copyButton.textContent = 'Unable to copy';
+  };
+
+  const fallbackCopy = () => {
+    try {
+      if (shareInput) {
+        shareInput.focus();
+        shareInput.select();
+        const successful = document.execCommand('copy');
+        shareInput.setSelectionRange(0, 0);
+        if (successful) return true;
+      }
+
+      const textarea = document.createElement('textarea');
+      textarea.value = textToCopy;
+      textarea.style.position = 'fixed';
+      textarea.style.top = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return successful;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(textToCopy)
+      .then(onSuccess)
+      .catch(() => {
+        if (fallbackCopy()) {
+          onSuccess();
+        } else {
+          onFailure();
+        }
+      });
+    return;
+  }
+
+  if (fallbackCopy()) {
+    onSuccess();
+  } else {
+    onFailure();
+  }
 }
 
 function trackKey(track) {
@@ -519,25 +565,35 @@ function applyBracketLayout(roundCount) {
   });
 
   if (bracketToolbar) {
-    const matches = Array.from(bracketEl.querySelectorAll('.match'));
-    const parentRect = bracketToolbar.parentElement?.getBoundingClientRect();
+    const finalRound = bracketEl.querySelector('.round.final');
+    const finalMatch = finalRound?.querySelector('.match');
+    const alignTarget = finalMatch || finalRound;
+    const alignParentRect = bracketEl.parentElement?.getBoundingClientRect();
 
-    if (matches.length > 0 && parentRect) {
-      requestAnimationFrame(() => {
-        const matchRects = matches.map((m) => m.getBoundingClientRect());
-        const leftmost = Math.min(...matchRects.map((rect) => rect.left));
-        const rightmost = Math.max(...matchRects.map((rect) => rect.right));
-        const width = rightmost - leftmost;
-        const offset = leftmost - parentRect.left;
+    requestAnimationFrame(() => {
+      const targetRect = alignTarget?.getBoundingClientRect();
 
-        bracketToolbar.style.width = `${width}px`;
-        bracketToolbar.style.marginLeft = `${offset}px`;
-      });
-    } else {
-      bracketToolbar.style.removeProperty('width');
-      bracketToolbar.style.removeProperty('margin-left');
-    }
+      alignToFinal(bracketToolbar, targetRect, alignParentRect);
+      if (footerContent) {
+        alignToFinal(footerContent, targetRect, alignParentRect);
+      }
+    });
   }
+}
+
+function alignToFinal(element, targetRect, parentRect) {
+  if (!element) return;
+
+  if (!targetRect || !parentRect) {
+    element.style.removeProperty('width');
+    element.style.removeProperty('margin-left');
+    return;
+  }
+
+  const width = targetRect.width;
+  const offset = targetRect.left - parentRect.left;
+  element.style.width = `${width}px`;
+  element.style.marginLeft = `${offset}px`;
 }
 
 function showShareModal(track) {
@@ -565,16 +621,13 @@ function showShareModal(track) {
   const song = track.song_name || 'this song';
   const artist = track.artists || 'Unknown artist';
   const message = `I picked ${song} by ${artist} as the best track on Brackify. Play here: ${link}`;
-
-  if (shareMessageEl) {
-    shareMessageEl.textContent = message;
-  }
+  const normalizedMessage = message.trim();
 
   if (shareInput) {
-    shareInput.value = message;
+    shareInput.value = normalizedMessage;
   }
 
-  shareCopyText = message;
+  shareCopyText = normalizedMessage;
 
   shareModal.classList.remove('hidden');
 }
@@ -584,15 +637,13 @@ function hideShareModal() {
     shareModal.classList.add('hidden');
   }
 
-  if (shareMessageEl) {
-    shareMessageEl.textContent = '';
-  }
-
   if (shareInput) {
-    shareInput.value = shareLink || '';
+    const normalized = (shareLink || '').trim();
+    shareInput.value = normalized;
+    shareCopyText = normalized;
+  } else {
+    shareCopyText = (shareLink || '').trim();
   }
-
-  shareCopyText = shareLink || '';
 }
 
 function resetBracket() {
