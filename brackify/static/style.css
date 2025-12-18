@@ -111,6 +111,7 @@ main {
 .featured-header h2 {
   margin: 0;
   letter-spacing: -0.02em;
+  font-family: 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
 }
 
 .featured-card {
@@ -292,6 +293,15 @@ button[type='submit']:active {
   margin: 0 0 4px;
 }
 
+.featured-label {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 500;
+  margin: 0 0 6px;
+}
+
 .ghost {
   border: 1px solid var(--border);
   background: #fff;
@@ -343,6 +353,12 @@ button[type='submit']:active {
   align-content: start;
   align-items: start;
   grid-auto-rows: min-content;
+}
+
+.bracket.is-scrollable {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding-right: 8px;
 }
 
 .round {
@@ -562,15 +578,15 @@ footer p {
   width: auto;
 }
 
-.footer-content a {
-  color: LinkText;
+footer a {
+  color: #0a6aff;
 }
 
-.footer-content a:visited {
-  color: VisitedText;
+footer a:visited {
+  color: #0a6aff;
 }
 
-.footer-content a:hover {
+footer a:hover {
   text-decoration: underline;
 }
 

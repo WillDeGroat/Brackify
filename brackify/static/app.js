@@ -227,6 +227,7 @@ function initializeBracket(seeds) {
   finalWinnerId = null;
   bracketState = [];
   initialSeeds = (seeds || []).map((s) => (s ? {...s} : null));
+  setBracketScrollState(Array.isArray(seeds) ? seeds.length : 0);
   hideShareModal();
   stopPreview();
 
@@ -573,6 +574,13 @@ function applyBracketLayout(roundCount) {
   if (!bracketEl) return;
 
   bracketEl.style.setProperty('--round-count', roundCount);
+}
+
+function setBracketScrollState(seedCount) {
+  if (!bracketEl) return;
+
+  const isLargeBracket = Number(seedCount) >= 64;
+  bracketEl.classList.toggle('is-scrollable', isLargeBracket);
 }
 
 function showShareModal(track) {
