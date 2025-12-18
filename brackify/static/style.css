@@ -331,6 +331,18 @@ button[type='submit']:active {
   gap: 6px;
 }
 
+.preview-button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -4px;
+}
+
+.slot .meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .song-title {
   margin: 0;
   font-weight: 800;
