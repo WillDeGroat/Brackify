@@ -27,7 +27,7 @@ def test_build_seed_list_randomized_is_deterministic_with_seed():
 
 def test_build_seed_list_rejects_invalid_size():
     with pytest.raises(ValueError):
-        build_seed_list(TRACKS, 8)
+        build_seed_list(TRACKS, 12)
 
 
 def test_chunk_matches_requires_power_of_two():
