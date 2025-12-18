@@ -645,7 +645,7 @@ footer a:hover {
   }
 
   .share-modal {
-    align-items: flex-start;
+    align-items: center;
     padding: 16px 10px;
   }
 
@@ -653,6 +653,9 @@ footer a:hover {
     width: 100%;
     padding: 14px;
     gap: 10px;
+    max-height: calc(100vh - 32px);
+    max-height: min(620px, calc(100dvh - 32px));
+    overflow-y: auto;
   }
 
   .share-header {
