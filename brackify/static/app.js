@@ -74,7 +74,7 @@ if (bracketId) {
 
 window.addEventListener('resize', () => {
   if (bracketState.length > 0) {
-    applyBracketLayout(bracketState.length);
+    applyBracketLayout();
   }
 });
 
@@ -425,7 +425,7 @@ function renderBracket() {
     bracketEl.appendChild(roundEl);
   });
 
-  applyBracketLayout(columns.length);
+  applyBracketLayout();
 }
 
 function renderCover(track) {
@@ -570,8 +570,17 @@ function launchConfetti() {
   }
 }
 
-function applyBracketLayout(roundCount) {
+function calculateColumnCount() {
+  const totalRounds = bracketState.length;
+  if (totalRounds === 0) return 0;
+
+  // Each non-final round renders as a left and right column, plus one final column.
+  return Math.max(1, (totalRounds - 1) * 2 + 1);
+}
+
+function applyBracketLayout(roundCount = calculateColumnCount()) {
   if (!bracketEl) return;
+  if (!roundCount || Number.isNaN(roundCount)) return;
 
   bracketEl.style.setProperty('--round-count', roundCount);
 }
