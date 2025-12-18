@@ -4,7 +4,7 @@ import random
 from brackify.spotify_client import TrackInfo
 
 
-AllowedBracketSizes = (16, 32)
+AllowedBracketSizes = (8, 16, 32, 64)
 
 
 def _validated_size(size: int) -> int:
