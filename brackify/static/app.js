@@ -579,7 +579,7 @@ function applyBracketLayout(roundCount) {
 function setBracketScrollState(seedCount) {
   if (!bracketEl) return;
 
-  const isLargeBracket = Number(seedCount) >= 64;
+  const isLargeBracket = Number(seedCount) >= 32;
   bracketEl.classList.toggle('is-scrollable', isLargeBracket);
 }
 
