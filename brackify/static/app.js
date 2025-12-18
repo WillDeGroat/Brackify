@@ -36,8 +36,8 @@ if (form) {
 
 if (featuredBracketButton && form) {
   featuredBracketButton.addEventListener('click', () => {
-    const featuredName = "Will's BC, NR Bracket";
-    const featuredPlaylist = 'https://open.spotify.com/playlist/61uHfaVzokKOLmQNWCNcT9?si=4b52514d51e84ad0&nd=1&dlsi=73e2c3d0a6074f92';
+    const featuredName = 'Marge Madness';
+    const featuredPlaylist = 'https://open.spotify.com/playlist/5JtrI28snUrcXw8JiANjGl?si=62dd96732136468b';
 
     form.bracket_name.value = featuredName;
     form.playlist.value = featuredPlaylist;
