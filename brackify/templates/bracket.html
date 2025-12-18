@@ -6,25 +6,23 @@
   <title>Brackify - Your Bracket</title>
   <link rel="stylesheet" href="{{ url_for('static', filename = 'style.css') }}">
 </head>
-<body data-bracket-id="{{ bracket_id }}">
+  <body data-bracket-id="{{ bracket_id }}">
   <header>
-    <div class="logo">Brackify</div>
-    <p>Share this bracket with friends and see who wins.</p>
-    <div class="header-actions">
-      <a class="secondary" href="{{ url_for('index') }}">Create another bracket</a>
-      <button id="reset-bracket" type="button" class="ghost">Reset bracket</button>
-    </div>
+    <div class="logo" aria-label="Brackify">B</div>
+    <p>Create interactive brackets from your Spotify playlists</p>
   </header>
 
   <main>
     <div class="bracket-toolbar">
+      <a class="button-link" href="{{ url_for('index') }}">New</a>
       <button id="reset-bracket" type="button" class="ghost">Reset</button>
     </div>
     <section id="bracket" class="bracket" aria-live="polite"></section>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
   </main>
 
   <footer>
-    <p>Created by Will (@wnfyu).</p>
+    <p>Created by Will (<a href="https://x.com/wnfyu" target="_blank" rel="noreferrer">@wnfyu</a>).</p>
   </footer>
 
   <div id="share-modal" class="share-modal hidden" role="dialog" aria-modal="true" aria-labelledby="share-title">
@@ -44,6 +42,7 @@
         <input id="share-url" aria-label="Shareable bracket link" value="{{ url_for('view_bracket', bracket_id = bracket_id, _external = True) }}" readonly>
         <button id="copy-share" type="button">Copy link</button>
       </div>
+      <p id="share-message" class="share-message muted"></p>
       <div class="modal-actions">
         <button id="close-share" type="button" class="ghost">Close</button>
       </div>
