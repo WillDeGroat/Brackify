@@ -24,6 +24,21 @@ let previewUrlRef = null;
 let initialSeeds = [];
 let shareCopyText = '';
 
+async function parseJsonResponse(response) {
+  const rawText = await response.text();
+
+  if (!rawText) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(rawText);
+  } catch (error) {
+    const message = rawText.trim();
+    throw new Error(message || 'Unexpected response from server');
+  }
+}
+
 if (shareInput && shareInput.value) {
   const normalized = shareInput.value.trim();
   shareCopyText = normalized;
@@ -106,7 +121,7 @@ async function handleFormSubmit(event) {
       body: JSON.stringify(payload),
     });
 
-    const data = await res.json();
+    const data = await parseJsonResponse(res);
 
     if (!res.ok) {
       throw new Error(data.error || 'Failed to build bracket');
@@ -126,7 +141,7 @@ async function hydrateBracket(id) {
 
   try {
     const res = await fetch(`/api/bracket/${encodeURIComponent(id)}`);
-    const data = await res.json();
+    const data = await parseJsonResponse(res);
 
     if (!res.ok) {
       throw new Error(data.error || 'Could not load bracket');

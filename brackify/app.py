@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 from datetime import datetime, timedelta, timezone
 import os
@@ -22,6 +22,20 @@ def remaining_ttl_seconds(created_at: datetime, expiration_delta: timedelta) -> 
     return max(0, int(remaining.total_seconds()))
 
 
+def bracket_signature(playlist: str, size: int, order: str, bracket_name: str) -> Tuple[str, int, str, str]:
+    return (
+        playlist.strip(),
+        size,
+        order.strip().lower(),
+        bracket_name.strip(),
+    )
+
+
+def signature_key(signature: Tuple[str, int, str, str]) -> str:
+    playlist, size, order, bracket_name = signature
+    return '|'.join([playlist, str(size), order, bracket_name])
+
+
 def create_app(store: Optional[BracketStore] = None, expiration_hours: Optional[int] = None) -> Flask:
     app = Flask(__name__)
 
@@ -30,6 +44,7 @@ def create_app(store: Optional[BracketStore] = None, expiration_hours: Optional[
     app.bracket_ttl_seconds = int(app.expiration_delta.total_seconds())  # type: ignore[attr-defined]
 
     app.bracket_store = store or create_store_from_env()  # type: ignore[attr-defined]
+    app.bracket_index: Dict[Tuple[str, int, str, str], str] = {}  # type: ignore[attr-defined]
 
     @app.get('/')
     def index():
@@ -59,10 +74,27 @@ def create_app(store: Optional[BracketStore] = None, expiration_hours: Optional[
         except (TypeError, ValueError):
             return jsonify({'error': f'size must be one of {AllowedBracketSizes}'}), 400
 
-        existing_bracket = next((b for b in brackets.values() if brackets_match(b, playlist, size_int, order, bracket_name)), None)
-        if existing_bracket:
-            existing_bracket['created_at'] = now().isoformat()
-            return jsonify(existing_bracket)
+        signature = bracket_signature(playlist, size_int, order, bracket_name)
+        existing_id = app.bracket_index.get(signature)  # type: ignore[attr-defined]
+        if not existing_id:
+            mapping = app.bracket_store.get(signature_key(signature))  # type: ignore[attr-defined]
+            if mapping:
+                existing_id = mapping.get('bracket_id')
+                if existing_id:
+                    app.bracket_index[signature] = existing_id  # type: ignore[attr-defined]
+
+        if existing_id:
+            existing_bracket = app.bracket_store.get(existing_id)  # type: ignore[attr-defined]
+
+            if existing_bracket:
+                refreshed_at = now()
+                existing_bracket['created_at'] = refreshed_at.isoformat()
+                ttl_seconds = remaining_ttl_seconds(refreshed_at, app.expiration_delta)  # type: ignore[attr-defined]
+                app.bracket_store.save(existing_id, existing_bracket, ttl_seconds)  # type: ignore[attr-defined]
+                app.bracket_store.save(signature_key(signature), {'bracket_id': existing_id}, ttl_seconds)  # type: ignore[attr-defined]
+                return jsonify(existing_bracket)
+
+            app.bracket_index.pop(signature, None)  # type: ignore[attr-defined]
 
         try:
             sp = get_spotify_client()
@@ -88,6 +120,7 @@ def create_app(store: Optional[BracketStore] = None, expiration_hours: Optional[
             'matches': chunk_matches(seeds),
             'total_tracks': len(tracks),
             'bracket_name': bracket_name,
+            'playlist': playlist,
             'bracket_id': bracket_id,
             'share_url': url_for('view_bracket', bracket_id = bracket_id, _external = True),
             'created_at': created_at.isoformat(),
@@ -95,6 +128,8 @@ def create_app(store: Optional[BracketStore] = None, expiration_hours: Optional[
 
         ttl_seconds = remaining_ttl_seconds(created_at, app.expiration_delta)  # type: ignore[attr-defined]
         app.bracket_store.save(bracket_id, bracket_payload, ttl_seconds)  # type: ignore[attr-defined]
+        app.bracket_store.save(signature_key(signature), {'bracket_id': bracket_id}, ttl_seconds)  # type: ignore[attr-defined]
+        app.bracket_index[signature] = bracket_id  # type: ignore[attr-defined]
 
         return jsonify(bracket_payload)
 
