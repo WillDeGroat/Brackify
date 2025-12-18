@@ -3,12 +3,13 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brackify - Spotify Playlist Brackets</title>
+    <title>Brackify</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename = 'favicon.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename = 'style.css') }}">
   </head>
   <body>
     <header>
-      <div class="logo" aria-label="Brackify">B</div>
+      <div class="logo" aria-label="Brackify">Brackify</div>
       <p>Create interactive brackets from your Spotify playlists</p>
     </header>
 
@@ -31,7 +32,6 @@
             <select id="size" name="size">
               <option value="16">16</option>
               <option value="32">32</option>
-              <option value="64">64</option>
             </select>
           </div>
         </div>

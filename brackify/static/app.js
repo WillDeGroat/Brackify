@@ -70,7 +70,7 @@ function setStatus(message, isError = false) {
 
 async function handleFormSubmit(event) {
   event.preventDefault();
-  setStatus('Building bracket...');
+  setStatus('');
 
   const payload = {
     playlist: form.playlist.value.trim(),
@@ -143,7 +143,7 @@ function handleCopyLink() {
     .then(() => {
       copyButton.textContent = 'Copied!';
       setTimeout(() => {
-        copyButton.textContent = 'Copy link';
+        copyButton.textContent = 'Copy';
       }, 1600);
     })
     .catch(() => {
@@ -513,10 +513,11 @@ function applyBracketLayout(roundCount) {
 
     if (matches.length > 0 && parentRect) {
       requestAnimationFrame(() => {
-        const bracketRect = bracketEl.getBoundingClientRect();
-        const rightmost = Math.max(...matches.map((m) => m.getBoundingClientRect().right));
-        const width = rightmost - bracketRect.left;
-        const offset = bracketRect.left - parentRect.left;
+        const matchRects = matches.map((m) => m.getBoundingClientRect());
+        const leftmost = Math.min(...matchRects.map((rect) => rect.left));
+        const rightmost = Math.max(...matchRects.map((rect) => rect.right));
+        const width = rightmost - leftmost;
+        const offset = leftmost - parentRect.left;
 
         bracketToolbar.style.width = `${width}px`;
         bracketToolbar.style.marginLeft = `${offset}px`;
@@ -552,7 +553,7 @@ function showShareModal(track) {
   const link = shareInput?.value || window.location.href;
   const song = track.song_name || 'this song';
   const artist = track.artists || 'Unknown artist';
-  const message = `I picked ${song} by ${artist} as the best song on Brackify. Listen here: ${link}`;
+  const message = `I picked ${song} by ${artist} as the best track on Brackify. Play here: ${link}`;
 
   if (shareMessageEl) {
     shareMessageEl.textContent = message;
