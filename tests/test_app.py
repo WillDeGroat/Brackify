@@ -15,6 +15,7 @@ def _sample_bracket(bracket_id: str, created_at: datetime) -> dict:
         'bracket_id': bracket_id,
         'share_url': f'/bracket/{bracket_id}',
         'created_at': created_at.isoformat(),
+        'playlist': 'playlist123',
     }
 
 
@@ -78,3 +79,90 @@ def test_bracket_creation_requires_name(monkeypatch):
 
     assert response.status_code == 400
     assert 'bracket_name' in response.get_json()['error']
+
+
+def _tracks(count: int = 16):
+    return [{'track_id': str(i), 'song_name': f'Song {i}', 'artists': 'Artist', 'album_name': 'Album', 'image_url': None} for i in range(1, count + 1)]
+
+
+def test_reuses_existing_bracket_and_refreshes_timestamp(monkeypatch):
+    app = create_app()
+    client = app.test_client()
+    fetch_calls = {'count': 0}
+
+    monkeypatch.setattr('brackify.app.get_spotify_client', lambda: None)
+
+    def _fetch(playlist, sp):
+        fetch_calls['count'] += 1
+        return _tracks()
+
+    monkeypatch.setattr('brackify.app.fetch_playlist_tracks', _fetch)
+
+    initial_response = client.post('/api/bracket', json = {
+        'playlist': 'playlist123',
+        'order': 'playlist',
+        'size': 16,
+        'bracket_name': 'My bracket',
+    })
+
+    first_payload = initial_response.get_json()
+    original_id = first_payload['bracket_id']
+
+    stale_time = datetime.now(timezone.utc) - timedelta(hours = 1)
+    app.brackets[original_id]['created_at'] = stale_time.isoformat()
+
+    reused_response = client.post('/api/bracket', json = {
+        'playlist': 'playlist123',
+        'order': 'playlist',
+        'size': 16,
+        'bracket_name': 'My bracket',
+    })
+
+    reused_payload = reused_response.get_json()
+
+    assert reused_response.status_code == 200
+    assert reused_payload['bracket_id'] == original_id
+    assert reused_payload['share_url'] == first_payload['share_url']
+    assert datetime.fromisoformat(reused_payload['created_at']) > stale_time
+    assert fetch_calls['count'] == 1
+
+
+def test_creates_new_bracket_when_existing_is_expired(monkeypatch):
+    app = create_app()
+    client = app.test_client()
+    fetch_calls = {'count': 0}
+
+    monkeypatch.setattr('brackify.app.get_spotify_client', lambda: None)
+
+    def _fetch(playlist, sp):
+        fetch_calls['count'] += 1
+        return _tracks()
+
+    monkeypatch.setattr('brackify.app.fetch_playlist_tracks', _fetch)
+
+    initial_response = client.post('/api/bracket', json = {
+        'playlist': 'playlist123',
+        'order': 'playlist',
+        'size': 16,
+        'bracket_name': 'My bracket',
+    })
+
+    first_payload = initial_response.get_json()
+    first_id = first_payload['bracket_id']
+
+    expired_time = datetime.now(timezone.utc) - timedelta(hours = EXPIRATION_HOURS + 1)
+    app.brackets[first_id]['created_at'] = expired_time.isoformat()
+
+    new_response = client.post('/api/bracket', json = {
+        'playlist': 'playlist123',
+        'order': 'playlist',
+        'size': 16,
+        'bracket_name': 'My bracket',
+    })
+
+    new_payload = new_response.get_json()
+
+    assert new_response.status_code == 200
+    assert new_payload['bracket_id'] != first_id
+    assert first_id not in app.brackets
+    assert fetch_calls['count'] == 2

@@ -59,6 +59,11 @@ def create_app(store: Optional[BracketStore] = None, expiration_hours: Optional[
         except (TypeError, ValueError):
             return jsonify({'error': f'size must be one of {AllowedBracketSizes}'}), 400
 
+        existing_bracket = next((b for b in brackets.values() if brackets_match(b, playlist, size_int, order, bracket_name)), None)
+        if existing_bracket:
+            existing_bracket['created_at'] = now().isoformat()
+            return jsonify(existing_bracket)
+
         try:
             sp = get_spotify_client()
             tracks = fetch_playlist_tracks(playlist, sp)
