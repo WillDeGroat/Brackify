@@ -57,7 +57,7 @@ header .logo {
 }
 
 header p {
-  color: var(--muted);
+  color: var(--text);
   margin: 8px 0 6px;
 }
 
