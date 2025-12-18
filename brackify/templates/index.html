@@ -9,7 +9,7 @@
   </head>
   <body>
     <header>
-      <div class="logo" aria-label="Brackify">Brackify</div>
+      <a class="logo" aria-label="Brackify" href="{{ url_for('index') }}">Brackify</a>
       <p>Create interactive brackets from your Spotify playlists</p>
     </header>
 
@@ -38,7 +38,7 @@
 
         <button type="submit">Generate</button>
       </form>
-      <div id="status" class="status" role="status" aria-live="polite"></div>
+      <div id="status" class="status" role="status" aria-live="polite" aria-hidden="true"></div>
     </section>
 
     <section id="bracket" class="bracket" aria-live="polite" hidden></section>
