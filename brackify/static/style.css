@@ -13,6 +13,12 @@
   box-sizing: border-box;
 }
 
+/* Prevent horizontal overflow from shifting the page's visual center */
+html,
+body {
+  overflow-x: clip; /* fallback: use hidden if needed */
+}
+
 body {
   margin: 0;
   font-family: 'Poppins', 'Inter', 'Avenir Next', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
@@ -21,13 +27,20 @@ body {
   min-height: 100vh;
 }
 
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
   font-family: inherit;
 }
 
+/* Constrain header to the same centerline as main */
 header {
   padding: 32px 24px 12px;
   text-align: center;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 header .logo {
@@ -77,7 +90,7 @@ main {
   border-radius: 14px;
   padding: 26px 24px;
 
-  width: min(680px, 100%); 
+  width: min(680px, 100%);
   margin: 0 auto;
 
   display: block;
@@ -96,7 +109,8 @@ form label {
   margin-bottom: 4px;
 }
 
-form input, form select {
+form input,
+form select {
   width: 100%;
   padding: 13px 14px;
   border-radius: 10px;
@@ -107,7 +121,8 @@ form input, form select {
   font-size: 16px;
 }
 
-form input:focus, form select:focus {
+form input:focus,
+form select:focus {
   border-color: #111;
 }
 
@@ -187,38 +202,46 @@ button[type='submit']:active {
   flex-wrap: nowrap;
 }
 
+/* Share actions */
 .share-actions {
   display: flex;
   gap: 8px;
-  flex: 0 1 260px;
   align-items: stretch;
+
+  flex: none;
+  width: 100%;
+  max-width: 360px;
 }
 
 .share-actions textarea {
   flex: 1;
   min-width: 0;
-  padding: 10px 12px;
-  border-radius: 10px;
+  padding: 4px 8px;
+  border-radius: 8px;
   border: 1px solid var(--border);
-  min-height: 72px;
-  font-size: 15px;
-  resize: vertical;
+  min-height: 44px;
+  font-size: 14px;
+  line-height: 1.2;
+  resize: none;
 }
 
 .share-actions button {
-  padding: 8px 18px;
-  border-radius: 10px;
+  padding: 2px 12px;
+  border-radius: 8px;
   border: 1px solid var(--accent);
   background: var(--accent);
   color: #fff;
   font-weight: 700;
   cursor: pointer;
-  height: auto;
-  align-self: stretch;
-  font-size: 15px;
+  font-size: 14px;
+  line-height: 1.2;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  align-self: stretch;
+  flex: 0 0 120px;
 }
 
 .eyebrow {
@@ -256,9 +279,12 @@ button[type='submit']:active {
   cursor: pointer;
 }
 
+/* Center toolbar to the same centerline as header/main */
 .bracket-toolbar {
   display: flex;
   justify-content: center;
+  align-items: center;
+  width: 100%;
   margin-top: 4px;
   margin-bottom: 12px;
   gap: 10px;
@@ -368,7 +394,6 @@ button[type='submit']:active {
   object-fit: cover;
 }
 
-
 .slot .meta {
   min-width: 0;
   display: flex;
@@ -466,26 +491,37 @@ button[type='submit']:active {
   font-size: 24px;
 }
 
-.share-card .share-actions {
-  margin-top: 10px;
-}
-
 .share-card .modal-actions {
   margin-top: 10px;
   display: flex;
   justify-content: flex-end;
 }
 
+/* Footer constrained to same centerline as header/main */
 footer {
-  text-align: center;
-  padding: 22px 16px 32px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 22px 24px 32px;
   color: var(--muted);
   font-size: 13px;
 }
 
 .footer-content {
-  margin: 0 auto;
-  width: fit-content;
+  margin: 0;
+  width: auto;
+  text-align: center;
+}
+
+.footer-content a {
+  color: inherit;
+}
+
+.footer-content a:hover {
+  text-decoration: underline;
 }
 
 .confetti-piece {
@@ -517,8 +553,11 @@ footer {
   }
 
   .share-actions {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
     width: 100%;
-    flex: 1 1 auto;
+    flex: none;
   }
 
   .round {
@@ -533,4 +572,41 @@ footer {
     width: 68px;
     height: 68px;
   }
+}
+
+/* Modal: make the textarea + Copy row span the full card width */
+.share-card .share-actions {
+  max-width: none;
+  width: 100%;
+}
+
+/* Modal: make the textbox larger */
+.share-card .share-actions textarea {
+  min-height: 100px;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Modal: keep Copy aligned with the right edge and sized nicely */
+.share-card .share-actions button {
+  flex: 0 0 96px;
+  align-self: stretch;
+}
+
+/* Keep toolbar + footer centered to the viewport even when the bracket grid overflows */
+.bracket-toolbar,
+footer {
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+}
+
+/* Keep the footer text tidy */
+.footer-content {
+  margin: 0;
+  text-align: center;
 }
