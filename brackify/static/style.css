@@ -45,6 +45,14 @@ header .secondary {
   font-weight: 600;
 }
 
+.header-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 main {
   max-width: 1200px;
   margin: 0 auto;
