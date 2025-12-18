@@ -13,6 +13,7 @@ const closeShareButton = document.getElementById('close-share');
 const resetButton = document.getElementById('reset-bracket');
 const bracketId = document.body?.dataset?.bracketId;
 const bracketToolbar = document.querySelector('.bracket-toolbar');
+let shareLink = '';
 
 let bracketState = [];
 let finalWinnerId = null;
@@ -25,6 +26,7 @@ let shareCopyText = '';
 
 if (shareInput && shareInput.value) {
   shareCopyText = shareInput.value;
+  shareLink = shareInput.value;
 }
 
 if (form) {
@@ -66,6 +68,9 @@ function setStatus(message, isError = false) {
 
   statusEl.textContent = message || '';
   statusEl.classList.toggle('error', Boolean(isError && message));
+  const hasMessage = Boolean(message);
+  statusEl.classList.toggle('is-visible', hasMessage);
+  statusEl.setAttribute('aria-hidden', hasMessage ? 'false' : 'true');
 }
 
 async function handleFormSubmit(event) {
@@ -132,6 +137,7 @@ function updateShareLink(url) {
   if (shareInput && url) {
     shareInput.value = url;
     shareCopyText = url;
+    shareLink = url;
   }
 }
 
@@ -212,6 +218,11 @@ function handlePick(roundIndex, matchIndex, slotIndex) {
 
   const nextRoundIndex = roundIndex + 1;
   if (!bracketState[nextRoundIndex]) {
+    if (!opponent) {
+      setStatus('Final requires two tracks to pick a winner.', true);
+      return;
+    }
+
     if (finalWinnerId && trackKey(choice) === finalWinnerId) {
       finalWinnerId = null;
       setStatus('');
@@ -550,13 +561,17 @@ function showShareModal(track) {
     shareCoverEl.alt = track.song_name ? `${track.song_name} cover art` : 'Winning album cover';
   }
 
-  const link = shareInput?.value || window.location.href;
+  const link = shareLink || shareInput?.value || window.location.href;
   const song = track.song_name || 'this song';
   const artist = track.artists || 'Unknown artist';
   const message = `I picked ${song} by ${artist} as the best track on Brackify. Play here: ${link}`;
 
   if (shareMessageEl) {
     shareMessageEl.textContent = message;
+  }
+
+  if (shareInput) {
+    shareInput.value = message;
   }
 
   shareCopyText = message;
@@ -573,7 +588,11 @@ function hideShareModal() {
     shareMessageEl.textContent = '';
   }
 
-  shareCopyText = shareInput?.value || '';
+  if (shareInput) {
+    shareInput.value = shareLink || '';
+  }
+
+  shareCopyText = shareLink || '';
 }
 
 function resetBracket() {
