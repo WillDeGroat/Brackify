@@ -22,7 +22,7 @@
   </main>
 
   <footer>
-    <p>Created by Will (<a href="https://x.com/wnfyu" target="_blank" rel="noreferrer">@wnfyu</a>).</p>
+    <p class="footer-content">Created by Will (<a href="https://x.com/wnfyu" target="_blank" rel="noreferrer">@wnfyu</a>).</p>
   </footer>
 
   <div id="share-modal" class="share-modal hidden" role="dialog" aria-modal="true" aria-labelledby="share-title">
@@ -39,10 +39,9 @@
         </div>
       </div>
       <div class="share-actions">
-        <input id="share-url" aria-label="Shareable bracket link" value="{{ url_for('view_bracket', bracket_id = bracket_id, _external = True) }}" readonly>
+        <textarea id="share-url" aria-label="Shareable bracket link" rows="3" readonly>{{ url_for('view_bracket', bracket_id = bracket_id, _external = True) }}</textarea>
         <button id="copy-share" type="button">Copy</button>
       </div>
-      <p id="share-message" class="share-message muted"></p>
       <div class="modal-actions">
         <button id="close-share" type="button" class="ghost">Close</button>
       </div>

@@ -21,7 +21,7 @@ body {
   min-height: 100vh;
 }
 
-button, input, select {
+button, input, select, textarea {
   font-family: inherit;
 }
 
@@ -191,16 +191,18 @@ button[type='submit']:active {
   display: flex;
   gap: 8px;
   flex: 0 1 260px;
+  align-items: stretch;
 }
 
-.share-actions input {
+.share-actions textarea {
   flex: 1;
   min-width: 0;
   padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  height: 42px;
+  min-height: 72px;
   font-size: 15px;
+  resize: vertical;
 }
 
 .share-actions button {
@@ -211,16 +213,12 @@ button[type='submit']:active {
   color: #fff;
   font-weight: 700;
   cursor: pointer;
-  height: 42px;
+  height: auto;
+  align-self: stretch;
   font-size: 15px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-.share-message {
-  margin: 8px 0 0;
-  font-size: 14px;
 }
 
 .eyebrow {
@@ -484,6 +482,11 @@ footer {
   padding: 22px 16px 32px;
   color: var(--muted);
   font-size: 13px;
+}
+
+.footer-content {
+  margin: 0 auto;
+  width: fit-content;
 }
 
 .confetti-piece {
