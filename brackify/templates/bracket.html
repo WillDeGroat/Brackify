@@ -17,7 +17,9 @@
   </header>
 
   <main>
-    <div id="status" role="status" aria-live="polite" class="inline-status"></div>
+    <div class="bracket-toolbar">
+      <button id="reset-bracket" type="button" class="ghost">Reset</button>
+    </div>
     <section id="bracket" class="bracket" aria-live="polite"></section>
   </main>
 
@@ -27,9 +29,17 @@
 
   <div id="share-modal" class="share-modal hidden" role="dialog" aria-modal="true" aria-labelledby="share-title">
     <div class="share-card">
-      <p class="eyebrow" id="share-title">Bracket complete</p>
-      <h2 id="share-winner"></h2>
-      <p class="muted" id="share-album"></p>
+      <div class="share-header">
+        <div class="share-cover-frame">
+          <img id="share-cover" alt="Winning album cover">
+        </div>
+        <div class="share-meta">
+          <p class="eyebrow" id="share-title">Bracket complete</p>
+          <h2 id="share-winner"></h2>
+          <p class="muted" id="share-album"></p>
+          <p class="muted" id="share-artist"></p>
+        </div>
+      </div>
       <div class="share-actions">
         <input id="share-url" aria-label="Shareable bracket link" value="{{ url_for('view_bracket', bracket_id = bracket_id, _external = True) }}" readonly>
         <button id="copy-share" type="button">Copy link</button>

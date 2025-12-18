@@ -6,6 +6,8 @@ const copyButton = document.getElementById('copy-share');
 const shareModal = document.getElementById('share-modal');
 const shareWinnerEl = document.getElementById('share-winner');
 const shareAlbumEl = document.getElementById('share-album');
+const shareArtistEl = document.getElementById('share-artist');
+const shareCoverEl = document.getElementById('share-cover');
 const closeShareButton = document.getElementById('close-share');
 const resetButton = document.getElementById('reset-bracket');
 const bracketId = document.body?.dataset?.bracketId;
@@ -316,13 +318,13 @@ function renderBracket() {
           if (isSelected(roundIndex, matchIndex, slotIndex, slot)) {
             slotEl.classList.add('selected');
           }
-        } else {
-          const placeholder = document.createElement('p');
-          placeholder.className = 'placeholder';
-          placeholder.textContent = 'Empty slot';
-          slotEl.appendChild(renderCover(null));
-          slotEl.appendChild(placeholder);
-        }
+    } else {
+      const placeholder = document.createElement('p');
+      placeholder.className = 'placeholder';
+      placeholder.textContent = 'Empty';
+      slotEl.appendChild(renderCover(null));
+      slotEl.appendChild(placeholder);
+    }
 
         slotEl.addEventListener('click', () => handlePick(roundIndex, matchIndex, slotIndex));
         matchEl.appendChild(slotEl);
@@ -510,10 +512,17 @@ function showShareModal(track) {
   }
 
   if (shareAlbumEl) {
-    const parts = [];
-    if (track.album_name) parts.push(track.album_name);
-    if (track.artists) parts.push(track.artists);
-    shareAlbumEl.textContent = parts.join(' • ');
+    shareAlbumEl.textContent = track.album_name || '';
+  }
+
+  if (shareArtistEl) {
+    shareArtistEl.textContent = track.artists || '';
+  }
+
+  if (shareCoverEl) {
+    const fallback = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180"><rect width="180" height="180" fill="%23f2f2f2"/><text x="50%" y="55%" text-anchor="middle" font-size="42" fill="%23888888" font-family="Helvetica, Arial, sans-serif">♪</text></svg>';
+    shareCoverEl.src = track.image_url || fallback;
+    shareCoverEl.alt = track.song_name ? `${track.song_name} cover art` : 'Winning album cover';
   }
 
   shareModal.classList.remove('hidden');

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
 :root {
   --bg: #ffffff;
   --card: #f7f7f7;
@@ -13,7 +15,7 @@
 
 body {
   margin: 0;
-  font-family: 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+  font-family: 'Poppins', 'Inter', 'Avenir Next', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -25,10 +27,11 @@ header {
 }
 
 header .logo {
-  font-size: 32px;
+  font-size: 38px;
   font-weight: 800;
   letter-spacing: -0.05em;
   color: var(--text);
+  font-family: 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
 }
 
 header p {
@@ -195,10 +198,10 @@ button[type='submit']:active {
   font-weight: 700;
 }
 
-.inline-status {
-  color: var(--muted);
-  min-height: 22px;
-  text-align: center;
+.bracket-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
 }
 
 .bracket {
@@ -282,7 +285,7 @@ button[type='submit']:active {
   position: relative;
   width: 82px;
   height: 82px;
-  border-radius: 14px;
+  border-radius: 0;
   overflow: hidden;
   background: #ececec;
   border: 1px solid var(--border);
@@ -292,7 +295,7 @@ button[type='submit']:active {
 .cover {
   width: 100%;
   height: 100%;
-  border-radius: 14px;
+  border-radius: 0;
   object-fit: cover;
 }
 
@@ -317,18 +320,6 @@ button[type='submit']:active {
 .preview-button:focus-visible {
   opacity: 1;
   pointer-events: auto;
-}
-
-.preview-button:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: -4px;
-}
-
-.slot .meta {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
 }
 
 .preview-button:focus-visible {
@@ -377,7 +368,7 @@ button[type='submit']:active {
   position: fixed;
   inset: 0;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding: 28px 14px;
   background: rgba(0, 0, 0, 0.45);
@@ -390,11 +381,41 @@ button[type='submit']:active {
 
 .share-card {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 20px;
   border: 1px solid var(--border);
   width: min(520px, 100%);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.share-header {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.share-cover-frame {
+  width: 120px;
+  height: 120px;
+  border-radius: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #f0f0f0;
+}
+
+.share-cover-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.share-meta h2 {
+  margin: 6px 0 4px;
+  font-size: 24px;
 }
 
 .share-card h2 {
