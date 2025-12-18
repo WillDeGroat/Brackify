@@ -119,6 +119,8 @@ main {
   overflow: hidden;
   border: 1px solid var(--border);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  padding: 0;
+  background: transparent;
 }
 
 .featured-card img {
@@ -556,7 +558,7 @@ footer p {
 }
 
 .footer-content a {
-  color: inherit;
+  color: var(--accent);
 }
 
 .footer-content a:hover {

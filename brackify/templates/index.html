@@ -16,8 +16,8 @@
   <main>
     <section class="controls">
       <form id="playlist-form">
-        <label for="bracket_name">Your bracket name</label>
-        <input id="bracket_name" name="bracket_name" type="text" placeholder="Summer showdown" required>
+        <label for="bracket_name">Name</label>
+        <input id="bracket_name" name="bracket_name" type="text" placeholder="Will's Bracket" required>
 
         <label for="playlist">Playlist URL</label>
         <input id="playlist" name="playlist" type="text" placeholder="https://open.spotify.com/playlist/..." required>
@@ -50,18 +50,17 @@
       <div class="featured-header">
         <p class="eyebrow" id="featured-title">Featured bracket</p>
         <h2>Will's BC, NR Bracket</h2>
-        <p class="muted">Order: Sequential · Size: 16</p>
       </div>
-      <a class="featured-card" href="https://open.spotify.com/playlist/61uHfaVzokKOLmQNWCNcT9?si=4b52514d51e84ad0" target="_blank" rel="noreferrer">
+      <button id="featured-bracket" class="featured-card" type="button" aria-label="Use Will's BC, NR Bracket">
         <img src="{{ url_for('static', filename = 'featured-bracket.svg') }}" alt="Will's BC, NR Bracket cover" loading="lazy">
-      </a>
+      </button>
     </section>
 
     <section id="bracket" class="bracket" aria-live="polite" hidden></section>
   </main>
 
   <footer>
-    <p>Created by Will (<a href="https://x.com/wnfyu" target="_blank" rel="noreferrer">@wnfyu</a>).</p>
+    <p>Created by Will (<a href="https://x.com/wnfyu" target="_blank" rel="noreferrer">@wnfyu</a>)</p>
   </footer>
 
   <script src="{{ url_for('static', filename = 'app.js') }}" defer></script>

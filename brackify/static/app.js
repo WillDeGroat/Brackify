@@ -11,6 +11,7 @@ const shareCoverEl = document.getElementById('share-cover');
 const closeShareButton = document.getElementById('close-share');
 const resetButton = document.getElementById('reset-bracket');
 const bracketId = document.body?.dataset?.bracketId;
+const featuredBracketButton = document.getElementById('featured-bracket');
 let shareLink = '';
 let bracketName = '';
 
@@ -31,6 +32,20 @@ if (shareInput && shareInput.value) {
 
 if (form) {
   form.addEventListener('submit', handleFormSubmit);
+}
+
+if (featuredBracketButton && form) {
+  featuredBracketButton.addEventListener('click', () => {
+    const featuredName = "Will's BC, NR Bracket";
+    const featuredPlaylist = 'https://open.spotify.com/playlist/61uHfaVzokKOLmQNWCNcT9?si=4b52514d51e84ad0&nd=1&dlsi=73e2c3d0a6074f92';
+
+    form.bracket_name.value = featuredName;
+    form.playlist.value = featuredPlaylist;
+    form.order.value = 'playlist';
+    form.size.value = '16';
+
+    form.requestSubmit();
+  });
 }
 
 if (copyButton && shareInput) {
